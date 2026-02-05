@@ -6,7 +6,7 @@ import { Toaster } from 'react-hot-toast'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'IQAir - Air Quality Monitor',
+  title: 'Breez - Air Quality Monitor',
   description: 'Real-time air quality monitoring and visualization',
 }
 

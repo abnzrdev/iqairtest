@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-app = FastAPI(title="IQAir API", version="1.0.0")
+app = FastAPI(title="Breez API", version="1.0.0")
 
 # CORS
 app.add_middleware(
@@ -37,7 +37,7 @@ app.add_middleware(
 
 # MongoDB
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
-DATABASE_NAME = os.getenv("DATABASE_NAME", "iqair")
+DATABASE_NAME = os.getenv("DATABASE_NAME", "breez")
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DATABASE_NAME]
 
@@ -53,9 +53,9 @@ ADMIN_SECRET = os.getenv("ADMIN_SECRET", "admin-secret")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@local")
 ADMIN_NAME = os.getenv("ADMIN_NAME", "Admin")
 
-# IQAir API
-IQAIR_API_KEY = os.getenv("IQAIR_API_KEY", "")
-IQAIR_BASE_URL = "http://api.airvisual.com/v2"
+# Breez API
+BREEZ_API_KEY = os.getenv("BREEZ_API_KEY", "")
+BREEZ_BASE_URL = "http://api.airvisual.com/v2"
 
 # Air Quality Sensor API
 SENSOR_API_URL = os.getenv("SENSOR_API_URL", "http://89.218.178.215:3003/")
@@ -242,7 +242,7 @@ async def require_admin(current_user: dict = Depends(get_current_user)):
 # Routes
 @app.get("/")
 async def root():
-    return {"message": "IQAir API", "version": "1.0.0"}
+    return {"message": "Breez API", "version": "1.0.0"}
 
 @app.post("/register", response_model=UserResponse)
 async def register(user: UserCreate):
@@ -450,7 +450,7 @@ async def get_air_quality_history(
     country: str,
     current_user: dict = Depends(get_current_user)
 ):
-    # Get historical data from MongoDB or IQAir API
+    # Get historical data from MongoDB
     history = await db.air_quality_history.find({
         "city": city,
         "state": state,

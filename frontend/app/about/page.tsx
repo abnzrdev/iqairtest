@@ -11,7 +11,7 @@ export default function AboutPage() {
         <div className="mb-8 md:mb-12 text-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3 md:mb-4">
             <span className="bg-gradient-to-r from-white via-green-100 to-cyan-200 bg-clip-text text-transparent">
-              О компании IQAir
+              О компании Breez
             </span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto px-4">
@@ -24,7 +24,7 @@ export default function AboutPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6">О нас</h2>
           <div className="text-gray-300 text-base sm:text-lg leading-relaxed space-y-3 sm:space-y-4">
             <p>
-              IQAir — ведущая компания в области мониторинга и очистки воздуха, основанная в 1963 году. 
+              Breez — ведущая компания в области мониторинга и очистки воздуха, основанная в 1963 году. 
               Мы специализируемся на создании инновационных решений для улучшения качества воздуха в домах, 
               офисах и общественных местах.
             </p>
@@ -33,7 +33,7 @@ export default function AboutPage() {
               принимать обоснованные решения о своем здоровье и здоровье своих близких.
             </p>
             <p>
-              С более чем 50 миллионами пользователей по всему миру, IQAir является доверенным партнером 
+              С более чем 50 миллионами пользователей по всему миру, Breez является доверенным партнером 
               для тысяч корпораций, школ, больниц и правительственных организаций.
             </p>
           </div>
@@ -61,7 +61,7 @@ export default function AboutPage() {
         <div className="glass-strong rounded-2xl sm:rounded-3xl border border-green-500/30 p-4 sm:p-6 md:p-8 mb-6 md:mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6">Карьера</h2>
           <p className="text-gray-300 text-base sm:text-lg mb-4 sm:mb-6">
-            Присоединяйтесь к команде IQAir и помогите нам сделать воздух чище для всех!
+            Присоединяйтесь к команде Breez и помогите нам сделать воздух чище для всех!
           </p>
           <div className="space-y-3 sm:space-y-4">
             {[
@@ -92,7 +92,7 @@ export default function AboutPage() {
               <div className="space-y-2 text-gray-300">
                 <p>📍 ул. Абая, 150</p>
                 <p>📞 +7 (727) 123-45-67</p>
-                <p>✉️ info@iqair.kz</p>
+                <p>✉️ info@breez.kz</p>
               </div>
             </div>
             <div>

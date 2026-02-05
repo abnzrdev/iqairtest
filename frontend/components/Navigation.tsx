@@ -46,7 +46,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
     },
     {
       name: 'О нас',
-      description: 'Узнайте больше о IQAir',
+      description: 'Узнайте больше о Breez',
       items: ['О компании', 'Команда', 'Карьера', 'Контакты']
     }
   ];
@@ -64,7 +64,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-br from-green-400 via-emerald-500 to-cyan-500 rounded-xl blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500"></div>
               </div>
-              <span className="text-2xl md:text-4xl font-black bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent tracking-tight">IQAir</span>
+              <span className="text-2xl md:text-4xl font-black bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent tracking-tight">Breez</span>
             </Link>
           </div>
 
@@ -193,7 +193,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                     <div className="w-9 h-9 bg-gradient-to-br from-green-400 via-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg">
                       <span className="text-xl font-black text-white">+</span>
                     </div>
-                    <span className="text-xl font-black bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">IQAir</span>
+                    <span className="text-xl font-black bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">Breez</span>
                   </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
