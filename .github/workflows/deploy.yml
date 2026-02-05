@@ -27,20 +27,9 @@ jobs:
             git fetch origin
             git reset --hard origin/main || git reset --hard origin/master
             
-            echo "🔧 Backend: Installing dependencies..."
-            cd backend
-            source venv/bin/activate
-            pip install -r requirements.txt --quiet
-            cd ..
-            
-            echo "🎨 Frontend: Installing dependencies..."
-            cd frontend
-            npm install --legacy-peer-deps
-            cd ..
-            
             echo "🔄 Restarting services..."
-            pm2 restart iqairtest-backend
-            pm2 restart iqairtest-frontend
+            pm2 restart iqairtest-backend || true
+            pm2 restart iqairtest-frontend || true
             
             echo "✅ Deployment complete!"
             pm2 list | grep iqair
