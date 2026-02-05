@@ -42,7 +42,7 @@ export default function AuthModal({ onLogin, onRegister }: AuthModalProps) {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(0,212,255,0.1),transparent_60%)]"></div>
       
       <div className="glass-strong rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all relative z-10 fade-in">
-        {/* Header with IQAir style */}
+        {/* Header with Breez style */}
         <div className="relative bg-gradient-to-br from-green-500/20 via-emerald-500/20 to-cyan-500/20 p-10 text-center border-b border-green-500/30">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,255,136,0.2),transparent_70%)]"></div>
           <div className="relative z-10">
@@ -53,7 +53,7 @@ export default function AuthModal({ onLogin, onRegister }: AuthModalProps) {
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-br from-green-400 via-emerald-500 to-cyan-500 rounded-xl blur-xl opacity-60"></div>
               </div>
-              <span className="text-4xl font-black bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">IQAir</span>
+              <span className="text-4xl font-black bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">Breez</span>
             </div>
             <h2 className="text-3xl font-black text-white mb-2">
               {isLogin ? 'Добро пожаловать' : 'Создать аккаунт'}
