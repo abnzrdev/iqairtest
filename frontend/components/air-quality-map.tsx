@@ -1,0 +1,354 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import type { LatLngTuple } from "leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+import { cn } from "@/lib/utils";
+import type { MapReading } from "@/types/map-reading";
+
+const BASEMAPS = {
+  osm: {
+    name: "OpenStreetMap",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: "&copy; OpenStreetMap contributors",
+  },
+  "3dkarta": {
+    name: "3D Карта",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution: "&copy; Esri &mdash; 3D Karta",
+  },
+  terrain: {
+    name: "Рельеф",
+    url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    attribution: "&copy; OpenTopoMap contributors",
+  },
+} as const;
+
+type BasemapKey = keyof typeof BASEMAPS;
+
+const AQI_BREAKPOINTS = [
+  { limit: 12, color: "#22c55e", label: "Good", range: "0-50", tw: "bg-green-500" },
+  { limit: 35.4, color: "#84cc16", label: "Moderate", range: "51-100", tw: "bg-lime-500" },
+  { limit: 55.4, color: "#eab308", label: "USG", range: "101-150", tw: "bg-amber-500" },
+  { limit: 150.4, color: "#f97316", label: "Unhealthy", range: "151-200", tw: "bg-orange-500" },
+  { limit: 250.4, color: "#ef4444", label: "Very Unhealthy", range: "201-300", tw: "bg-red-500" },
+  { limit: Infinity, color: "#7e22ce", label: "Hazardous", range: "300+", tw: "bg-purple-700" },
+];
+
+const AQI_LEVELS = [
+  { label: "Good", colorClass: "bg-[#22c55e]", range: "0-50" },
+  { label: "Moderate", colorClass: "bg-[#84cc16]", range: "51-100" },
+  { label: "USG", colorClass: "bg-[#eab308]", range: "101-150" },
+  { label: "Unhealthy", colorClass: "bg-[#f97316]", range: "151-200" },
+  { label: "Very Unhealthy", colorClass: "bg-[#ef4444]", range: "201-300" },
+  { label: "Hazardous", colorClass: "bg-[#7e22ce]", range: "300+" },
+];
+
+const DEFAULT_CENTER: LatLngTuple = [37.0902, -95.7129];
+
+function parseLocation(location?: string | null): LatLngTuple | null {
+  if (!location) return null;
+  const [latStr, lngStr] = location.split(",").map((part) => part.trim());
+  const lat = Number(latStr);
+  const lng = Number(lngStr);
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+
+  return [lat, lng];
+}
+
+type AggregatedPoint = {
+  key: string;
+  coords: LatLngTuple;
+  count: number;
+  avgValue: number;
+  latestValue: number;
+  lastTimestamp: string;
+  sensorIds: string[];
+};
+
+type MarkerCluster = {
+  getAllChildMarkers: () => L.Marker[];
+};
+
+type MarkerClusterGroup = L.LayerGroup & {
+  addLayer: (layer: L.Layer) => MarkerClusterGroup;
+};
+
+type MarkerClusterGroupFactory = (options?: {
+  iconCreateFunction?: (cluster: MarkerCluster) => L.DivIcon;
+  chunkedLoading?: boolean;
+  showCoverageOnHover?: boolean;
+  spiderfyOnMaxZoom?: boolean;
+}) => MarkerClusterGroup;
+
+function aggregatePoints(readings: MapReading[]): AggregatedPoint[] {
+  const map = new Map<string, AggregatedPoint>();
+
+  readings.forEach((reading) => {
+    const coords = parseLocation(reading.location);
+    if (!coords) return;
+
+    const key = reading.location!.trim();
+    const existing = map.get(key);
+    const timestamp = new Date(reading.timestamp).toISOString();
+
+    if (!existing) {
+      map.set(key, {
+        key,
+        coords,
+        count: 1,
+        avgValue: reading.value,
+        latestValue: reading.value,
+        lastTimestamp: timestamp,
+        sensorIds: [reading.sensorId],
+      });
+      return;
+    }
+
+    const count = existing.count + 1;
+    const avgValue = (existing.avgValue * existing.count + reading.value) / count;
+    const isNewer = timestamp > existing.lastTimestamp;
+
+    const sensorIds = existing.sensorIds.includes(reading.sensorId)
+      ? existing.sensorIds
+      : [...existing.sensorIds, reading.sensorId];
+
+    map.set(key, {
+      ...existing,
+      count,
+      avgValue,
+      latestValue: isNewer ? reading.value : existing.latestValue,
+      lastTimestamp: isNewer ? timestamp : existing.lastTimestamp,
+      sensorIds,
+    });
+  });
+
+  return Array.from(map.values());
+}
+
+function createPointIcon(value: number) {
+  const bp =
+    AQI_BREAKPOINTS.find((b) => value <= b.limit) ??
+    AQI_BREAKPOINTS[AQI_BREAKPOINTS.length - 1];
+  const html = `
+    <div class="flex items-center justify-center rounded-full text-[10px] font-semibold text-primary-foreground shadow-lg border border-border/70 ${bp.tw}"
+         style="width:28px;height:28px;">
+      ${Math.round(value)}
+    </div>
+  `;
+
+  const iconOptions: L.DivIconOptions & { aqiValue: number } = {
+    className: "aqi-point-icon",
+    html,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -14],
+    aqiValue: value,
+  };
+
+  return L.divIcon(iconOptions);
+}
+
+function createClusterIcon(cluster: MarkerCluster) {
+  const childMarkers = cluster.getAllChildMarkers() as L.Marker[];
+  const values = childMarkers.map((m) => {
+    const opts = (m.options.icon?.options ?? {}) as { aqiValue?: number };
+    return opts.aqiValue ?? 0;
+  });
+
+  const avg = values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+  const bp =
+    AQI_BREAKPOINTS.find((b) => avg <= b.limit) ??
+    AQI_BREAKPOINTS[AQI_BREAKPOINTS.length - 1];
+  const size = Math.min(44 + values.length, 76);
+
+  const html = `
+    <div class="flex items-center justify-center rounded-full text-xs font-semibold text-primary-foreground shadow-lg border border-border/70 ${bp.tw}"
+         style="width:${size}px;height:${size}px;">
+      ${values.length}
+    </div>
+  `;
+
+  const iconOptions: L.DivIconOptions = {
+    className: "aqi-cluster-icon",
+    html,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  };
+
+  return L.divIcon(iconOptions);
+}
+
+function FitToMarkers({ points }: { points: AggregatedPoint[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || points.length === 0) return;
+    const bounds = L.latLngBounds(points.map((point) => point.coords));
+    map.fitBounds(bounds, { padding: [32, 32], maxZoom: 13 });
+  }, [map, points]);
+
+  return null;
+}
+
+export function AirQualityMap({
+  readings,
+  emptyStateText,
+  heightClass = "h-[420px]",
+  className,
+}: {
+  readings: MapReading[];
+  emptyStateText: string;
+  heightClass?: string;
+  className?: string;
+}) {
+  const points = useMemo(() => aggregatePoints(readings), [readings]);
+  const [basemap, setBasemap] = useState<BasemapKey>("osm");
+
+  const center = useMemo<LatLngTuple>(() => {
+    if (points.length === 0) return DEFAULT_CENTER;
+    const [latSum, lngSum] = points.reduce(
+      (acc, point) => [acc[0] + point.coords[0], acc[1] + point.coords[1]],
+      [0, 0]
+    );
+    return [latSum / points.length, lngSum / points.length];
+  }, [points]);
+
+  if (points.length === 0) {
+    return (
+      <div
+        className={cn(
+          "flex items-center justify-center rounded-lg border border-dashed border-slate-800/60 text-sm text-muted-foreground",
+          heightClass
+        )}
+      >
+        {emptyStateText}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "relative flex h-full flex-col rounded-lg border border-slate-800/70 bg-background",
+        heightClass,
+        className
+      )}
+    >
+      <div className="relative flex flex-wrap items-center gap-4 overflow-visible border-b border-slate-800/60 bg-background/80 px-4 py-2 backdrop-blur">
+        <LegendBar />
+        <div className="ml-auto flex items-center gap-1">
+          {(Object.keys(BASEMAPS) as BasemapKey[]).map((key) => (
+            <button
+              key={key}
+              onClick={() => setBasemap(key)}
+              className={cn(
+                "px-2 py-1 rounded text-xs font-medium transition-colors",
+                basemap === key
+                  ? "bg-green-500/30 text-green-300 border border-green-500/50"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+              )}
+            >
+              {BASEMAPS[key].name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="relative flex-1 overflow-hidden rounded-b-lg">
+        <MapContainer center={center} zoom={5} scrollWheelZoom className="h-full w-full bg-background z-0">
+          <TileLayer
+            key={basemap}
+            attribution={BASEMAPS[basemap].attribution}
+            url={BASEMAPS[basemap].url}
+          />
+          <FitToMarkers points={points} />
+          <ClusterLayer points={points} />
+        </MapContainer>
+      </div>
+    </div>
+  );
+}
+
+function LegendBar() {
+  return (
+    <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+      {AQI_LEVELS.map((level) => (
+        <div key={level.label} className="inline-flex cursor-default items-center gap-2" title={`AQI Range: ${level.range}`}>
+          <span className={cn("h-2.5 w-2.5 rounded-full", level.colorClass)} aria-hidden />
+          <span className="font-medium text-foreground/90">{level.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ClusterLayer({ points }: { points: AggregatedPoint[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map) return;
+
+    const markerClusterGroup = (L as typeof L & { markerClusterGroup?: MarkerClusterGroupFactory })
+      .markerClusterGroup;
+    if (!markerClusterGroup) return;
+
+    const clusterGroup = markerClusterGroup({
+      iconCreateFunction: (cluster) => createClusterIcon(cluster),
+      chunkedLoading: true,
+      showCoverageOnHover: false,
+      spiderfyOnMaxZoom: true,
+    });
+
+    points.forEach((point) => {
+      const marker = L.marker(point.coords, { icon: createPointIcon(point.avgValue) });
+
+      const tooltipHtml = `
+        <div class="space-y-1 text-xs">
+          <div class="font-semibold">${point.key}</div>
+          <div>Avg: ${point.avgValue.toFixed(1)}</div>
+          <div>Latest: ${point.latestValue.toFixed(1)}</div>
+          <div>Samples: ${point.count}</div>
+        </div>
+      `;
+      marker.bindTooltip(tooltipHtml, {
+        direction: "top",
+        offset: [0, -2],
+        permanent: false,
+        sticky: true,
+      });
+
+      const sensorsHtml = point.sensorIds
+        .map((id) => `<span class="text-blue-600">${id}</span>`)
+        .join("<br/>");
+      const popupHtml = `
+        <div class="space-y-1 text-sm">
+          <div class="font-semibold">${point.key}</div>
+          <div>Avg: ${point.avgValue.toFixed(2)}</div>
+          <div>Latest: ${point.latestValue.toFixed(2)}</div>
+          <div>Samples: ${point.count}</div>
+          <div class="text-xs text-muted-foreground">Sensors:<br/>${sensorsHtml}</div>
+          <div class="text-[11px] text-muted-foreground">Updated: ${new Date(point.lastTimestamp).toLocaleString()}</div>
+        </div>
+      `;
+      marker.bindPopup(popupHtml);
+
+      clusterGroup.addLayer(marker);
+    });
+
+    map.addLayer(clusterGroup);
+
+    return () => {
+      map.removeLayer(clusterGroup);
+    };
+  }, [map, points]);
+
+  return null;
+}
