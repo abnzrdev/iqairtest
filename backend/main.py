@@ -57,6 +57,12 @@ ADMIN_NAME = os.getenv("ADMIN_NAME", "Admin")
 BREEZ_API_KEY = os.getenv("BREEZ_API_KEY", "")
 BREEZ_BASE_URL = "http://api.airvisual.com/v2"
 
+TEST_USER_EMAIL = os.getenv("TEST_USER_EMAIL", "test@example.com")
+TEST_USER_PASSWORD = os.getenv("TEST_USER_PASSWORD", "test123")
+
+IQAIR_API_KEY = os.getenv("IQAIR_API_KEY", "")
+IQAIR_BASE_URL = "http://api.airvisual.com/v2"
+
 # Air Quality Sensor API
 SENSOR_API_URL = os.getenv("SENSOR_API_URL", "http://89.218.178.215:3003/")
 
@@ -161,7 +167,105 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
+<<<<<<< HEAD
 def sensor_to_response(sensor: dict) -> dict:
+=======
+async def seed_test_user_and_sensors():
+    """Create the demo user and attach sample sensors so the map is never empty."""
+    try:
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(
+                select(User).options(selectinload(User.sensors)).where(User.email == TEST_USER_EMAIL)
+            )
+            user = result.scalar_one_or_none()
+
+            if not user:
+                user = User(
+                    email=TEST_USER_EMAIL,
+                    name="Test User",
+                    hashed_password=get_password_hash(TEST_USER_PASSWORD),
+                    created_at=datetime.utcnow(),
+                    role="user",
+                )
+                session.add(user)
+                await session.flush()
+                print(f"✓ Created demo user {TEST_USER_EMAIL}")
+            else:
+                print(f"✓ Demo user exists: {TEST_USER_EMAIL}")
+
+            demo_sensors = [
+                {
+                    "name": "Downtown Center",
+                    "description": "Sensor in downtown business district",
+                    "city": "Almaty",
+                    "country": "Kazakhstan",
+                    "location": {"type": "Point", "coordinates": [76.9385, 43.2380]},
+                    "parameters": {"pm25": 45.5, "pm10": 65.2, "co2": 420, "co": 0.8, "o3": 35, "no2": 42, "voc": 0.5, "ch2o": 0.02, "temp": 22, "hum": 45},
+                },
+                {
+                    "name": "Park Monitor",
+                    "description": "Sensor near Gorky Park",
+                    "city": "Almaty",
+                    "country": "Kazakhstan",
+                    "location": {"type": "Point", "coordinates": [76.8800, 43.2150]},
+                    "parameters": {"pm25": 28.3, "pm10": 35.5, "co2": 410, "co": 0.3, "o3": 28, "no2": 25, "voc": 0.2, "ch2o": 0.01, "temp": 20, "hum": 55},
+                },
+                {
+                    "name": "Industrial Zone",
+                    "description": "Sensor in industrial area",
+                    "city": "Almaty",
+                    "country": "Kazakhstan",
+                    "location": {"type": "Point", "coordinates": [77.0500, 43.1800]},
+                    "parameters": {"pm25": 95.7, "pm10": 145.2, "co2": 480, "co": 2.5, "o3": 55, "no2": 78, "voc": 1.2, "ch2o": 0.08, "temp": 24, "hum": 35},
+                },
+                {
+                    "name": "Highway Monitor",
+                    "description": "Sensor near main highway",
+                    "city": "Almaty",
+                    "country": "Kazakhstan",
+                    "location": {"type": "Point", "coordinates": [77.1200, 43.2500]},
+                    "parameters": {"pm25": 65.4, "pm10": 95.8, "co2": 450, "co": 1.5, "o3": 45, "no2": 58, "voc": 0.8, "ch2o": 0.04, "temp": 21, "hum": 50},
+                },
+                {
+                    "name": "Residential Area",
+                    "description": "Sensor in residential neighborhood",
+                    "city": "Almaty",
+                    "country": "Kazakhstan",
+                    "location": {"type": "Point", "coordinates": [76.7800, 43.2800]},
+                    "parameters": {"pm25": 38.2, "pm10": 52.1, "co2": 415, "co": 0.5, "o3": 32, "no2": 35, "voc": 0.3, "ch2o": 0.015, "temp": 19, "hum": 60},
+                },
+            ]
+
+            for sensor_payload in demo_sensors:
+                existing = await session.execute(select(Sensor).where(Sensor.name == sensor_payload["name"]))
+                sensor = existing.scalar_one_or_none()
+
+                if not sensor:
+                    sensor = Sensor(
+                        name=sensor_payload["name"],
+                        description=sensor_payload["description"],
+                        city=sensor_payload["city"],
+                        country=sensor_payload["country"],
+                        location=sensor_payload["location"],
+                        parameters=sensor_payload["parameters"],
+                        price=0,
+                        created_at=datetime.utcnow(),
+                    )
+                    session.add(sensor)
+                    await session.flush()
+                    print(f"  • Added sensor {sensor.name}")
+
+                if sensor not in user.sensors:
+                    user.sensors.append(sensor)
+                    print(f"  • Granted access to {sensor.name}")
+
+            await session.commit()
+    except Exception as e:
+        print(f"Demo seed failed: {e}")
+
+
+def sensor_to_response(sensor: Sensor) -> dict:
+>>>>>>> f109ad9 (feat(backend): add seed script for test data and update main/run)
     return {
         "id": str(sensor.get("_id")),
         "name": sensor.get("name"),
@@ -238,6 +342,15 @@ async def require_admin(current_user: dict = Depends(get_current_user)):
     if not user_is_admin(current_user):
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
+<<<<<<< HEAD
+=======
+@app.on_event("startup")
+async def on_startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    await seed_test_user_and_sensors()
+
+>>>>>>> f109ad9 (feat(backend): add seed script for test data and update main/run)
 
 # Routes
 @app.get("/")
@@ -1095,6 +1208,87 @@ async def get_map_sensors(current_user: dict = Depends(get_current_user)):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.put("/sensors/{sensor_id}/parameters")
+async def update_sensor_parameters(
+    sensor_id: str,
+    pm25: float = None,
+    pm10: float = None,
+    co2: float = None,
+    co: float = None,
+    o3: float = None,
+    no2: float = None,
+    voc: float = None,
+    ch2o: float = None,
+    temp: float = None,
+    hum: float = None,
+    current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Update sensor parameters. Test with: /sensors/1/parameters?pm25=100&pm10=150"""
+    try:
+        user_result = await session.execute(
+            select(User).options(selectinload(User.sensors)).where(User.id == getattr(current_user, "id", None))
+        )
+        user = user_result.scalar_one_or_none()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        sensor_result = await session.execute(select(Sensor).where(Sensor.id == int(sensor_id)))
+        sensor = sensor_result.scalar_one_or_none()
+        if not sensor:
+            raise HTTPException(status_code=404, detail="Sensor not found")
+
+        if sensor not in user.sensors and not user_is_admin(current_user):
+            raise HTTPException(status_code=403, detail="You don't have access to this sensor")
+
+        # Update parameters
+        if sensor.parameters is None:
+            sensor.parameters = {}
+
+        updated_fields = {}
+        if pm25 is not None:
+            sensor.parameters["pm25"] = pm25
+            updated_fields["pm25"] = pm25
+        if pm10 is not None:
+            sensor.parameters["pm10"] = pm10
+            updated_fields["pm10"] = pm10
+        if co2 is not None:
+            sensor.parameters["co2"] = co2
+            updated_fields["co2"] = co2
+        if co is not None:
+            sensor.parameters["co"] = co
+            updated_fields["co"] = co
+        if o3 is not None:
+            sensor.parameters["o3"] = o3
+            updated_fields["o3"] = o3
+        if no2 is not None:
+            sensor.parameters["no2"] = no2
+            updated_fields["no2"] = no2
+        if voc is not None:
+            sensor.parameters["voc"] = voc
+            updated_fields["voc"] = voc
+        if ch2o is not None:
+            sensor.parameters["ch2o"] = ch2o
+            updated_fields["ch2o"] = ch2o
+        if temp is not None:
+            sensor.parameters["temp"] = temp
+            updated_fields["temp"] = temp
+        if hum is not None:
+            sensor.parameters["hum"] = hum
+            updated_fields["hum"] = hum
+
+        await session.commit()
+
+        return {
+            "message": "Sensor parameters updated successfully",
+            "sensor": sensor_to_response(sensor),
+            "updated_fields": updated_fields,
+        }
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail=f"Error updating sensor: {e}")
+
 
 if __name__ == "__main__":
     import uvicorn
