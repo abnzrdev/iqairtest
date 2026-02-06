@@ -98,11 +98,11 @@ export const authAPI = {
   },
   
   login: async (email: string, password: string) => {
-    const formData = new FormData();
-    formData.append('username', email);
-    formData.append('password', password);
-    const response = await axios.post(`${API_URL}/token`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    const params = new URLSearchParams();
+    params.append('username', email);
+    params.append('password', password);
+    const response = await axios.post(`${API_URL}/token`, params.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
     if (response.data.access_token) {
       Cookies.set('token', response.data.access_token, { expires: 7 });
@@ -192,6 +192,10 @@ export const sensorAPI = {
   mapSensors: async (): Promise<any[]> => {
     const response = await api.get('/sensors/map');
     return response.data.data || [];
+  },
+  sendToUser: async (sensorId: string, email: string) => {
+    const response = await api.post(`/sensors/${sensorId}/send`, { email });
+    return response.data;
   },
 };
 

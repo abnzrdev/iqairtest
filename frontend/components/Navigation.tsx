@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 interface NavigationProps {
   user: any;
-  onLogout: () => void;
+  onLogout?: () => void;
 }
 
 export default function Navigation({ user, onLogout }: NavigationProps) {
@@ -144,7 +144,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                   <span className="text-green-400 text-xs font-medium sm:hidden">{user.name.split(' ')[0]}</span>
                 </div>
                 <button
-                  onClick={onLogout}
+                  onClick={() => onLogout?.()}
                   className="px-3 md:px-5 py-1.5 md:py-2.5 bg-gradient-to-r from-red-500/20 to-pink-500/20 hover:from-red-500/30 hover:to-pink-500/30 text-red-400 hover:text-red-300 font-medium transition-all duration-200 border border-red-500/30 hover:border-red-500/50 rounded-lg hover:shadow-lg hover:shadow-red-500/20 text-sm md:text-base"
                 >
                   <span className="hidden sm:inline">Выйти</span>
@@ -286,7 +286,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                       </div>
                       <button
                         onClick={() => {
-                          onLogout();
+                          onLogout?.();
                           setMobileMenuOpen(false);
                         }}
                         className="w-full px-4 py-3 bg-gradient-to-r from-red-500/20 to-pink-500/20 hover:from-red-500/30 hover:to-pink-500/30 text-red-400 hover:text-red-300 font-semibold text-sm transition-all duration-200 border border-red-500/30 hover:border-red-500/50 rounded-lg active:scale-95 min-h-[48px]"

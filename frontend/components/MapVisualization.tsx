@@ -157,6 +157,20 @@ function createCustomIcon(aqi: number, isDangerous: boolean = false, isPurchased
 }
 
 export default function MapVisualization({ airQualityData, allAirQualityData, purchasedSensors = [] }: MapVisualizationProps) {
+  // Fix for default marker icons (run only on client)
+  useEffect(() => {
+    try {
+      // @ts-ignore
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+      });
+    } catch (e) {
+      // Ignore errors during server-side build
+    }
+  }, []);
   const getAQIColor = (aqi: number) => {
     if (aqi <= 50) return '#00e400';
     if (aqi <= 100) return '#ffff00';

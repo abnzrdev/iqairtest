@@ -69,7 +69,7 @@ export default function SolutionsPage() {
 
         {/* Stats */}
         <div className="glass-strong rounded-3xl border border-green-500/30 p-8">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">IQAir в цифрах</h2>
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">Breez в цифрах</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[
               { number: '10,000+', label: 'Корпоративных клиентов' },

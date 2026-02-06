@@ -114,7 +114,7 @@ export default function PurifiersPage() {
 
         {/* Benefits Section */}
         <div className="mt-12 glass-strong rounded-3xl border border-green-500/30 p-8">
-          <h2 className="text-3xl font-bold text-white mb-6">Почему выбирают IQAir?</h2>
+          <h2 className="text-3xl font-bold text-white mb-6">Почему выбирают Breez?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { icon: '🔬', title: 'Научный подход', desc: 'Разработано с использованием последних исследований' },
