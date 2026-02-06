@@ -111,14 +111,9 @@ iqair/
 
 ## Использование
 
-1. Запустите MongoDB
-2. Запустите бэкенд (порт 8000)
-3. Запустите фронтенд (порт 3000)
-4. Откройте http://localhost:3000 в браузере
-5. Зарегистрируйтесь или войдите
-6. Выберите город и просмотрите данные о качестве воздуха
-
-
-
-
-
+1. Start MongoDB
+2. Start the backend (port 8000)
+3. Start the frontend (port 3000)
+4. Open http://localhost:3000 in your browser
+5. Register or sign in
+6. Choose a city and view air quality data
