@@ -4,7 +4,7 @@
   "activeSensorsCount": "{count} active sensors",
   "activeSensor": "active sensor",
   "style": "Style",
-  "filter": "Filter",
+  "filterLabel": "Filter",
   "filterByAqi": "Filter sensors by AQI category",
   "retry": "Retry",
   "standard": "Standard",

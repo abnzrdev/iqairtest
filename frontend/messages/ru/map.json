@@ -4,7 +4,7 @@
   "activeSensorsCount": "{count} активных датчиков",
   "activeSensor": "активных датчиков",
   "style": "Стиль",
-  "filter": "Фильтр",
+  "filterLabel": "Фильтр",
   "filterByAqi": "Фильтр датчиков по категории AQI",
   "retry": "Повторить",
   "standard": "Стандарт",

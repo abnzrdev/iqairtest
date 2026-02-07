@@ -4,7 +4,7 @@
   "activeSensorsCount": "{count} белсенді сенсор",
   "activeSensor": "белсенді сенсор",
   "style": "Стиль",
-  "filter": "Сүзгі",
+  "filterLabel": "Сүзгі",
   "filterByAqi": "Сенсорларды AQI категориясы бойынша сүзгілеу",
   "retry": "Қайталау",
   "standard": "Стандарт",

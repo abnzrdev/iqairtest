@@ -118,7 +118,7 @@ export function MapCard({ sensors, loading, error, onRefetch }: MapCardProps) {
           </div>
         </div>
         <div className="flex items-center gap-2" role="group" aria-label={t('filterGroup')}>
-          <span className="text-xs text-gray-500 uppercase tracking-wider hidden sm:inline">{t('filter')}</span>
+          <span className="text-xs text-gray-500 uppercase tracking-wider hidden sm:inline">{t('filterLabel')}</span>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as SensorFilterValue)}

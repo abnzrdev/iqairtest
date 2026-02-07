@@ -40,6 +40,8 @@ app.add_middleware(
         "http://89.218.178.215:3003",
         "http://89.218.178.215:3000",
         "http://89.218.178.215:3001",
+        "https://breez.com.kz",
+        "https://www.breez.com.kz",
     ],
     allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
