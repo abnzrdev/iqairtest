@@ -1,7 +1,19 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002';
+// Lazily require `js-cookie` at runtime to avoid referencing `window` during
+// server-side builds/prerender. When running server-side, provide a no-op
+// fallback so imports don't throw.
+const getCookies = () => {
+  if (typeof window !== 'undefined') {
+    return require('js-cookie');
+  }
+  return { get: () => undefined, set: () => {}, remove: () => {} };
+};
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -12,6 +24,7 @@ const api = axios.create({
 
 // Add token to requests
 api.interceptors.request.use((config) => {
+  const Cookies = getCookies();
   const token = Cookies.get('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -65,6 +78,7 @@ export interface AirQualityData {
   sensor_data?: {
     device_id: string;
     site: string;
+    danger_level?: string;
   };
 }
 
@@ -105,12 +119,14 @@ export const authAPI = {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
     if (response.data.access_token) {
+      const Cookies = getCookies();
       Cookies.set('token', response.data.access_token, { expires: 7 });
     }
     return response.data;
   },
   
   logout: () => {
+    const Cookies = getCookies();
     Cookies.remove('token');
   },
   
@@ -124,6 +140,7 @@ export const adminAuthAPI = {
   login: async (secret: string) => {
     const response = await api.post('/admin/login', { secret });
     if (response.data.access_token) {
+      const Cookies = getCookies();
       Cookies.set('token', response.data.access_token, { expires: 1 });
     }
     return response.data;
@@ -192,10 +209,6 @@ export const sensorAPI = {
   mapSensors: async (): Promise<any[]> => {
     const response = await api.get('/sensors/map');
     return response.data.data || [];
-  },
-  sendToUser: async (sensorId: string, email: string) => {
-    const response = await api.post(`/sensors/${sensorId}/send`, { email });
-    return response.data;
   },
 };
 
