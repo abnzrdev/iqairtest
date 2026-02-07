@@ -19,27 +19,39 @@ load_dotenv()
 
 app = FastAPI(title="Breez API", version="1.0.0")
 
-# CORS
+# CORS - allow localhost on any port + production origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000", 
-        "http://localhost:3001", 
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3002",
         "http://localhost:3003",
+        "http://localhost:3004",
+        "http://localhost:3005",
+        "http://localhost:3006",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:3002",
+        "http://127.0.0.1:3003",
+        "http://127.0.0.1:3004",
+        "http://127.0.0.1:3005",
+        "http://127.0.0.1:3006",
         "http://89.218.178.215:3003",
         "http://89.218.178.215:3000",
-        "http://89.218.178.215:3001"
+        "http://89.218.178.215:3001",
     ],
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# MongoDB
+# MongoDB or in-memory fallback when MongoDB is unavailable
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 DATABASE_NAME = os.getenv("DATABASE_NAME", "breez")
-client = AsyncIOMotorClient(MONGO_URL)
-db = client[DATABASE_NAME]
+client = AsyncIOMotorClient(MONGO_URL, serverSelectionTimeoutMS=5000)
+db = client[DATABASE_NAME]  # May be replaced with MemoryDb at startup
 
 # Security
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
@@ -163,111 +175,104 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-<<<<<<< HEAD
+# In-memory fallback when MongoDB is unavailable
+class MemoryCollection:
+    """In-memory collection mimicking Motor's async interface."""
+    def __init__(self, name: str, initial_data: list = None):
+        self.name = name
+        self._data = {}
+        self._counter = 1
+        for doc in (initial_data or []):
+            doc = dict(doc)
+            k = str(doc.get("_id", self._counter))
+            self._data[k] = doc
+            self._data[k]["_id"] = k
+            self._counter += 1
+        self._counter = max(self._counter, len(self._data) + 1)
+
+    async def find_one(self, query: dict):
+        if "_id" in query:
+            key = str(query["_id"])
+            return self._data.get(key)
+        # Generic field match: iterate and check all query keys
+        for doc in self._data.values():
+            if all(doc.get(k) == v for k, v in query.items()):
+                return doc
+        return None
+
+    async def insert_one(self, doc: dict):
+        key = str(ObjectId())
+        doc = dict(doc)
+        doc["_id"] = key
+        self._data[key] = doc
+        class R:
+            inserted_id = key
+        return R()
+
+    async def update_one(self, query: dict, update: dict):
+        doc = await self.find_one(query)
+        if not doc:
+            class R:
+                matched_count = 0
+                modified_count = 0
+            return R()
+        key = str(doc["_id"])
+        if "$set" in update:
+            for k, v in update["$set"].items():
+                self._data[key][k] = v
+        if "$addToSet" in update:
+            for k, v in update["$addToSet"].items():
+                arr = self._data[key].setdefault(k, [])
+                if isinstance(v, dict) and "$each" in v:
+                    for x in v["$each"]:
+                        if x not in arr:
+                            arr.append(x)
+                elif v not in arr:
+                    arr.append(v)
+        class R:
+            matched_count = 1
+            modified_count = 1
+        return R()
+
+    def find(self, query: dict = None):
+        class Cursor:
+            def __init__(self, items):
+                self._items = list(items)
+            def limit(self, n):
+                self._items = self._items[:n] if n > 0 else self._items
+                return self
+            async def to_list(self, length):
+                return self._items[:length] if length else self._items
+        return Cursor(self._data.values())
+
+
+class MemoryDb:
+    """In-memory DB used when MongoDB is unavailable."""
+    def __init__(self):
+        # Use ObjectId-compatible ID so safe_get_user_id works
+        oid = str(ObjectId())
+        self.users = MemoryCollection("users", [{
+            "_id": oid,
+            "email": TEST_USER_EMAIL,
+            "name": "Test User",
+            "hashed_password": get_password_hash(TEST_USER_PASSWORD),
+            "role": "user",
+            "sensor_permissions": [],
+        }])
+        self.sensors = MemoryCollection("sensors", [])
+        self.sensor_readings = MemoryCollection("sensor_readings", [])
+        self.air_quality_history = MemoryCollection("air_quality_history", [])
+        self.cities = MemoryCollection("cities", [])
+        self.purchases = MemoryCollection("purchases", [])
+
+
 def sensor_to_response(sensor: dict) -> dict:
-=======
-async def seed_test_user_and_sensors():
-    """Create the demo user and attach sample sensors so the map is never empty."""
-    try:
-        async with AsyncSessionLocal() as session:
-            result = await session.execute(
-                select(User).options(selectinload(User.sensors)).where(User.email == TEST_USER_EMAIL)
-            )
-            user = result.scalar_one_or_none()
-
-            if not user:
-                user = User(
-                    email=TEST_USER_EMAIL,
-                    name="Test User",
-                    hashed_password=get_password_hash(TEST_USER_PASSWORD),
-                    created_at=datetime.utcnow(),
-                    role="user",
-                )
-                session.add(user)
-                await session.flush()
-                print(f"✓ Created demo user {TEST_USER_EMAIL}")
-            else:
-                print(f"✓ Demo user exists: {TEST_USER_EMAIL}")
-
-            demo_sensors = [
-                {
-                    "name": "Downtown Center",
-                    "description": "Sensor in downtown business district",
-                    "city": "Almaty",
-                    "country": "Kazakhstan",
-                    "location": {"type": "Point", "coordinates": [76.9385, 43.2380]},
-                    "parameters": {"pm25": 45.5, "pm10": 65.2, "co2": 420, "co": 0.8, "o3": 35, "no2": 42, "voc": 0.5, "ch2o": 0.02, "temp": 22, "hum": 45},
-                },
-                {
-                    "name": "Park Monitor",
-                    "description": "Sensor near Gorky Park",
-                    "city": "Almaty",
-                    "country": "Kazakhstan",
-                    "location": {"type": "Point", "coordinates": [76.8800, 43.2150]},
-                    "parameters": {"pm25": 28.3, "pm10": 35.5, "co2": 410, "co": 0.3, "o3": 28, "no2": 25, "voc": 0.2, "ch2o": 0.01, "temp": 20, "hum": 55},
-                },
-                {
-                    "name": "Industrial Zone",
-                    "description": "Sensor in industrial area",
-                    "city": "Almaty",
-                    "country": "Kazakhstan",
-                    "location": {"type": "Point", "coordinates": [77.0500, 43.1800]},
-                    "parameters": {"pm25": 95.7, "pm10": 145.2, "co2": 480, "co": 2.5, "o3": 55, "no2": 78, "voc": 1.2, "ch2o": 0.08, "temp": 24, "hum": 35},
-                },
-                {
-                    "name": "Highway Monitor",
-                    "description": "Sensor near main highway",
-                    "city": "Almaty",
-                    "country": "Kazakhstan",
-                    "location": {"type": "Point", "coordinates": [77.1200, 43.2500]},
-                    "parameters": {"pm25": 65.4, "pm10": 95.8, "co2": 450, "co": 1.5, "o3": 45, "no2": 58, "voc": 0.8, "ch2o": 0.04, "temp": 21, "hum": 50},
-                },
-                {
-                    "name": "Residential Area",
-                    "description": "Sensor in residential neighborhood",
-                    "city": "Almaty",
-                    "country": "Kazakhstan",
-                    "location": {"type": "Point", "coordinates": [76.7800, 43.2800]},
-                    "parameters": {"pm25": 38.2, "pm10": 52.1, "co2": 415, "co": 0.5, "o3": 32, "no2": 35, "voc": 0.3, "ch2o": 0.015, "temp": 19, "hum": 60},
-                },
-            ]
-
-            for sensor_payload in demo_sensors:
-                existing = await session.execute(select(Sensor).where(Sensor.name == sensor_payload["name"]))
-                sensor = existing.scalar_one_or_none()
-
-                if not sensor:
-                    sensor = Sensor(
-                        name=sensor_payload["name"],
-                        description=sensor_payload["description"],
-                        city=sensor_payload["city"],
-                        country=sensor_payload["country"],
-                        location=sensor_payload["location"],
-                        parameters=sensor_payload["parameters"],
-                        price=0,
-                        created_at=datetime.utcnow(),
-                    )
-                    session.add(sensor)
-                    await session.flush()
-                    print(f"  • Added sensor {sensor.name}")
-
-                if sensor not in user.sensors:
-                    user.sensors.append(sensor)
-                    print(f"  • Granted access to {sensor.name}")
-
-            await session.commit()
-    except Exception as e:
-        print(f"Demo seed failed: {e}")
-
-
-def sensor_to_response(sensor: Sensor) -> dict:
->>>>>>> f109ad9 (feat(backend): add seed script for test data and update main/run)
+    sid = sensor.get("_id")
     return {
-        "id": str(sensor.get("_id")),
+        "id": str(sid) if sid is not None else None,
         "name": sensor.get("name"),
         "description": sensor.get("description"),
         "price": sensor.get("price", 0),
@@ -277,6 +282,91 @@ def sensor_to_response(sensor: Sensor) -> dict:
         "parameters": sensor.get("parameters", {}),
         "created_at": sensor.get("created_at"),
     }
+
+
+async def seed_test_user_and_sensors():
+    """Ensure demo user and sensors exist in Mongo so the map has data."""
+    try:
+        user = await db.users.find_one({"email": TEST_USER_EMAIL})
+        if not user:
+            user_doc = {
+                "email": TEST_USER_EMAIL,
+                "name": "Test User",
+                "hashed_password": get_password_hash(TEST_USER_PASSWORD),
+                "created_at": datetime.utcnow(),
+                "role": "user",
+                "sensor_permissions": [],
+            }
+            result = await db.users.insert_one(user_doc)
+            user_id = result.inserted_id
+            print(f"✓ Created demo user {TEST_USER_EMAIL}")
+        else:
+            user_id = user.get("_id")
+            print(f"✓ Demo user exists: {TEST_USER_EMAIL}")
+
+        demo_sensors = [
+            {
+                "name": "Downtown Center",
+                "description": "Sensor in downtown business district",
+                "city": "Almaty",
+                "country": "Kazakhstan",
+                "location": {"type": "Point", "coordinates": [76.9385, 43.2380]},
+                "parameters": {"pm25": 45.5, "pm10": 65.2, "co2": 420, "co": 0.8, "o3": 35, "no2": 42, "voc": 0.5, "ch2o": 0.02, "temp": 22, "hum": 45},
+            },
+            {
+                "name": "Park Monitor",
+                "description": "Sensor near Gorky Park",
+                "city": "Almaty",
+                "country": "Kazakhstan",
+                "location": {"type": "Point", "coordinates": [76.8800, 43.2150]},
+                "parameters": {"pm25": 28.3, "pm10": 35.5, "co2": 410, "co": 0.3, "o3": 28, "no2": 25, "voc": 0.2, "ch2o": 0.01, "temp": 20, "hum": 55},
+            },
+            {
+                "name": "Industrial Zone",
+                "description": "Sensor in industrial area",
+                "city": "Almaty",
+                "country": "Kazakhstan",
+                "location": {"type": "Point", "coordinates": [77.0500, 43.1800]},
+                "parameters": {"pm25": 95.7, "pm10": 145.2, "co2": 480, "co": 2.5, "o3": 55, "no2": 78, "voc": 1.2, "ch2o": 0.08, "temp": 24, "hum": 35},
+            },
+            {
+                "name": "Highway Monitor",
+                "description": "Sensor near main highway",
+                "city": "Almaty",
+                "country": "Kazakhstan",
+                "location": {"type": "Point", "coordinates": [77.1200, 43.2500]},
+                "parameters": {"pm25": 65.4, "pm10": 95.8, "co2": 450, "co": 1.5, "o3": 45, "no2": 58, "voc": 0.8, "ch2o": 0.04, "temp": 21, "hum": 50},
+            },
+            {
+                "name": "Residential Area",
+                "description": "Sensor in residential neighborhood",
+                "city": "Almaty",
+                "country": "Kazakhstan",
+                "location": {"type": "Point", "coordinates": [76.7800, 43.2800]},
+                "parameters": {"pm25": 38.2, "pm10": 52.1, "co2": 415, "co": 0.5, "o3": 32, "no2": 35, "voc": 0.3, "ch2o": 0.015, "temp": 19, "hum": 60},
+            },
+        ]
+
+        sensor_ids = []
+        for sensor_doc in demo_sensors:
+            existing = await db.sensors.find_one({"name": sensor_doc["name"]})
+            if existing:
+                sensor_id = existing.get("_id")
+                print(f"  ⊝ Sensor exists: {sensor_doc['name']}")
+            else:
+                sensor_doc["created_at"] = datetime.utcnow()
+                result = await db.sensors.insert_one(sensor_doc)
+                sensor_id = result.inserted_id
+                print(f"  ✓ Added sensor {sensor_doc['name']}")
+            sensor_ids.append(str(sensor_id))
+
+        await db.users.update_one(
+            {"_id": user_id},
+            {"$addToSet": {"sensor_permissions": {"$each": sensor_ids}}}
+        )
+        print(f"✓ Granted access to {len(sensor_ids)} sensors for {TEST_USER_EMAIL}")
+    except Exception as e:
+        print(f"Demo seed failed: {e}")
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
@@ -342,15 +432,19 @@ async def require_admin(current_user: dict = Depends(get_current_user)):
     if not user_is_admin(current_user):
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
-<<<<<<< HEAD
-=======
+
+
 @app.on_event("startup")
 async def on_startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    global db
+    try:
+        await asyncio.wait_for(client.admin.command("ping"), timeout=3.0)
+        db = client[DATABASE_NAME]
+        print("✓ Connected to MongoDB")
+    except Exception as e:
+        print(f"⚠️ MongoDB unavailable ({e}), using in-memory store")
+        db = MemoryDb()
     await seed_test_user_and_sensors()
-
->>>>>>> f109ad9 (feat(backend): add seed script for test data and update main/run)
 
 # Routes
 @app.get("/")
@@ -930,66 +1024,14 @@ async def grant_sensor_access(sensor_id: str, request: GrantAccessRequest, curre
     sensor = await db.sensors.find_one({"_id": ObjectId(sensor_id)})
     if not sensor:
         raise HTTPException(status_code=404, detail="Sensor not found")
-    
     user = await db.users.find_one({"email": request.email})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
     await db.users.update_one(
         {"_id": user["_id"]},
         {"$addToSet": {"sensor_permissions": str(sensor["_id"])}}
     )
     return {"message": f"Access to sensor {sensor_id} granted for {request.email}"}
-
-
-@app.post("/purchase/sensors/{sensor_id}")
-async def purchase_sensor(sensor_id: str, current_user: dict = Depends(get_current_user)):
-    try:
-        # Проверяем, является ли пользователь мок-админом
-        if current_user.get("_id") == "admin":
-            raise HTTPException(status_code=403, detail="Admin users cannot purchase sensors")
-        
-        if not ObjectId.is_valid(sensor_id):
-            raise HTTPException(status_code=400, detail="Invalid sensor id")
-        sensor = await db.sensors.find_one({"_id": ObjectId(sensor_id)})
-        if not sensor:
-            raise HTTPException(status_code=404, detail="Sensor not found")
-        
-        # Получаем актуальный user_id
-        user_id = current_user.get("_id")
-        if isinstance(user_id, str) and ObjectId.is_valid(user_id):
-            user_id = ObjectId(user_id)
-        elif not isinstance(user_id, ObjectId):
-            raise HTTPException(status_code=400, detail="Invalid user ID")
-        
-        # Обновляем права пользователя
-        result = await db.users.update_one(
-            {"_id": user_id},
-            {"$addToSet": {"sensor_permissions": str(sensor["_id"])}}
-        )
-        
-        if result.matched_count == 0:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        print(f"✅ Sensor {sensor_id} purchased by user {user_id}")
-        print(f"   Updated permissions: {result.modified_count > 0}")
-        
-        # Запишем покупку для истории
-        await db.purchases.insert_one({
-            "user_id": str(user_id),
-            "sensor_id": str(sensor["_id"]),
-            "timestamp": datetime.utcnow(),
-            "status": "paid"
-        })
-        
-        return {"message": "Sensor purchased successfully", "sensor": sensor_to_response(sensor)}
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"❌ Error in purchase_sensor: {e}")
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 @app.get("/me/sensors")
@@ -1222,72 +1264,180 @@ async def update_sensor_parameters(
     ch2o: float = None,
     temp: float = None,
     hum: float = None,
-    current_user=Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(get_current_user),
 ):
     """Update sensor parameters. Test with: /sensors/1/parameters?pm25=100&pm10=150"""
     try:
-        user_result = await session.execute(
-            select(User).options(selectinload(User.sensors)).where(User.id == getattr(current_user, "id", None))
-        )
-        user = user_result.scalar_one_or_none()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+        if not ObjectId.is_valid(sensor_id):
+            raise HTTPException(status_code=400, detail="Invalid sensor id")
 
-        sensor_result = await session.execute(select(Sensor).where(Sensor.id == int(sensor_id)))
-        sensor = sensor_result.scalar_one_or_none()
+        # Admin can update any sensor; regular users need sensor_permissions
+        is_admin = user_is_admin(current_user)
+        if not is_admin:
+            user_id = current_user.get("_id")
+            if isinstance(user_id, str) and ObjectId.is_valid(user_id):
+                user_id = ObjectId(user_id)
+            user = await db.users.find_one({"_id": user_id})
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            sensor_permissions = set(user.get("sensor_permissions", []) or [])
+            if sensor_id not in sensor_permissions:
+                raise HTTPException(status_code=403, detail="You don't have access to this sensor")
+
+        sensor = await db.sensors.find_one({"_id": ObjectId(sensor_id)})
         if not sensor:
             raise HTTPException(status_code=404, detail="Sensor not found")
 
-        if sensor not in user.sensors and not user_is_admin(current_user):
-            raise HTTPException(status_code=403, detail="You don't have access to this sensor")
-
-        # Update parameters
-        if sensor.parameters is None:
-            sensor.parameters = {}
-
+        parameters = sensor.get("parameters") or {}
         updated_fields = {}
         if pm25 is not None:
-            sensor.parameters["pm25"] = pm25
+            parameters["pm25"] = pm25
             updated_fields["pm25"] = pm25
         if pm10 is not None:
-            sensor.parameters["pm10"] = pm10
+            parameters["pm10"] = pm10
             updated_fields["pm10"] = pm10
         if co2 is not None:
-            sensor.parameters["co2"] = co2
+            parameters["co2"] = co2
             updated_fields["co2"] = co2
         if co is not None:
-            sensor.parameters["co"] = co
+            parameters["co"] = co
             updated_fields["co"] = co
         if o3 is not None:
-            sensor.parameters["o3"] = o3
+            parameters["o3"] = o3
             updated_fields["o3"] = o3
         if no2 is not None:
-            sensor.parameters["no2"] = no2
+            parameters["no2"] = no2
             updated_fields["no2"] = no2
         if voc is not None:
-            sensor.parameters["voc"] = voc
+            parameters["voc"] = voc
             updated_fields["voc"] = voc
         if ch2o is not None:
-            sensor.parameters["ch2o"] = ch2o
+            parameters["ch2o"] = ch2o
             updated_fields["ch2o"] = ch2o
         if temp is not None:
-            sensor.parameters["temp"] = temp
+            parameters["temp"] = temp
             updated_fields["temp"] = temp
         if hum is not None:
-            sensor.parameters["hum"] = hum
+            parameters["hum"] = hum
             updated_fields["hum"] = hum
 
-        await session.commit()
+        await db.sensors.update_one(
+            {"_id": ObjectId(sensor_id)},
+            {"$set": {"parameters": parameters}}
+        )
 
+        updated_sensor = await db.sensors.find_one({"_id": ObjectId(sensor_id)})
         return {
             "message": "Sensor parameters updated successfully",
-            "sensor": sensor_to_response(sensor),
+            "sensor": sensor_to_response(updated_sensor),
             "updated_fields": updated_fields,
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        await session.rollback()
         raise HTTPException(status_code=500, detail=f"Error updating sensor: {e}")
+
+
+# -------------------------
+# Device token (long-lived JWT for IoT devices)
+# -------------------------
+class DeviceTokenRequest(BaseModel):
+    email: EmailStr
+
+
+@app.post("/device/token")
+async def create_device_token(
+    body: DeviceTokenRequest,
+    current_user: dict = Depends(require_admin),
+):
+    """
+    Admin-only: generate a long-lived JWT (365 days) for a device acting on
+    behalf of the given user email.  The Raspberry Pi stores this token and
+    sends it in every request.
+    """
+    user = await db.users.find_one({"email": body.email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    token = create_access_token(
+        data={"sub": user["email"], "role": user.get("role", "user")},
+        expires_delta=timedelta(days=365),
+    )
+    return {"access_token": token, "token_type": "bearer", "expires_in_days": 365}
+
+
+# -------------------------
+# Raspberry Pi data ingestion
+# -------------------------
+@app.post("/data")
+async def ingest_sensor_data(
+    data: SensorData,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Receives sensor readings from a Raspberry Pi (or any device).
+    Requires a Bearer JWT token so each reading is linked to a user.
+    """
+    try:
+        is_admin, user_oid = safe_get_user_id(current_user)
+        user_id_str = str(current_user["_id"])
+
+        # 1. Persist the raw reading in sensor_readings (time-series)
+        reading_doc = data.dict()
+        reading_doc["user_id"] = user_id_str
+        reading_doc["timestamp"] = datetime.utcnow()
+        await db.sensor_readings.insert_one(reading_doc)
+
+        # 2. Upsert a sensor document so the reading shows on the map.
+        #    Match by device_id; create if it doesn't exist yet.
+        existing_sensor = await db.sensors.find_one({"device_id": data.device_id})
+
+        params = {
+            "pm25": data.pm25, "pm10": data.pm10, "pm1": data.pm1,
+            "co2": data.co2, "voc": data.voc, "temp": data.temp,
+            "hum": data.hum, "ch2o": data.ch2o, "co": data.co,
+            "o3": data.o3, "no2": data.no2,
+        }
+
+        if existing_sensor:
+            sensor_id_str = str(existing_sensor["_id"])
+            await db.sensors.update_one(
+                {"_id": existing_sensor["_id"]},
+                {"$set": {"parameters": params, "updated_at": datetime.utcnow()}},
+            )
+        else:
+            # Auto-create a sensor from the device payload
+            new_sensor = {
+                "device_id": data.device_id,
+                "name": data.site or data.device_id,
+                "description": f"Auto-created from device {data.device_id}",
+                "city": "Almaty",
+                "country": "Kazakhstan",
+                "location": {"type": "Point", "coordinates": [76.8512, 43.2220]},
+                "parameters": params,
+                "price": 0,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+            }
+            result = await db.sensors.insert_one(new_sensor)
+            sensor_id_str = str(result.inserted_id)
+            print(f"✓ Auto-created sensor '{data.device_id}' -> {sensor_id_str}")
+
+        # 3. Grant the user permission to see this sensor on the map
+        if not is_admin and user_oid is not None:
+            await db.users.update_one(
+                {"_id": user_oid},
+                {"$addToSet": {"sensor_permissions": sensor_id_str}},
+            )
+
+        print(f"✓ Ingested reading from device={data.device_id} for user={current_user['email']}")
+        return {"status": "ok", "device_id": data.device_id, "user": current_user["email"]}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error in ingest_sensor_data: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Ingestion error: {str(e)}")
 
 
 if __name__ == "__main__":

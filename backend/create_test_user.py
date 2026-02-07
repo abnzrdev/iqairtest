@@ -1,15 +1,27 @@
 #!/usr/bin/env python3
 """Создание тестового пользователя"""
-from motor.motor_asyncio import AsyncIOMotorClient
-from passlib.context import CryptContext
-from datetime import datetime
+import os
 import asyncio
+from datetime import datetime
+from motor.motor_asyncio import AsyncIOMotorClient
+from dotenv import load_dotenv
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+load_dotenv()
+
+def get_password_hash(password: str) -> str:
+    import bcrypt
+    if isinstance(password, str):
+        password = password.encode("utf-8")
+    if len(password) > 72:
+        password = password[:72]
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password, salt).decode("utf-8")
 
 async def create_test_user():
-    client = AsyncIOMotorClient("mongodb://localhost:27017")
-    db = client["iqair"]
+    mongo_url = os.getenv("MONGO_URL", "mongodb://localhost:27017")
+    db_name = os.getenv("DATABASE_NAME", "breez")
+    client = AsyncIOMotorClient(mongo_url)
+    db = client[db_name]
     
     # Проверяем, существует ли пользователь
     existing = await db.users.find_one({"email": "test@example.com"})
@@ -19,7 +31,7 @@ async def create_test_user():
         return
     
     # Создаем нового пользователя
-    hashed_password = pwd_context.hash("test123")
+    hashed_password = get_password_hash("test123")
     user_dict = {
         "email": "test@example.com",
         "name": "Test User",
