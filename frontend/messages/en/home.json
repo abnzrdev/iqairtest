@@ -1,0 +1,11 @@
+{
+  "realtimeBadge": "Real-time monitoring",
+  "airQuality": "Air Quality",
+  "inAlmaty": "in Almaty",
+  "subtitle": "Track data from all sensors in real time with an interactive map and get accurate air quality information",
+  "startMonitoring": "Start monitoring",
+  "learnMore": "Learn more",
+  "activeSensorsCount": "Active sensors",
+  "avgAqi": "Average AQI",
+  "monitoring": "Monitoring"
+}

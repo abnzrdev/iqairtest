@@ -1,0 +1,44 @@
+{
+  "title": "Air Quality Map",
+  "live": "LIVE",
+  "activeSensorsCount": "{count} active sensors",
+  "activeSensor": "active sensor",
+  "style": "Style",
+  "filter": "Filter",
+  "filterByAqi": "Filter sensors by AQI category",
+  "retry": "Retry",
+  "standard": "Standard",
+  "good": "Good",
+  "critical": "Critical",
+  "filter": {
+    "all": "All",
+    "unhealthy": "Unhealthy",
+    "healthy": "Healthy"
+  },
+  "styleDark": "Dark",
+  "styleSatellite": "3D/Satellite",
+  "styleGroup": "Map style",
+  "filterGroup": "Sensor filter by AQI",
+  "aqi": {
+    "good": "Good",
+    "moderate": "Moderate",
+    "unhealthySensitive": "Unhealthy for Sensitive Groups",
+    "unhealthy": "Unhealthy",
+    "veryUnhealthy": "Very Unhealthy",
+    "hazardous": "Hazardous",
+    "critical": "Critical"
+  },
+  "danger": {
+    "safe": "Safe",
+    "moderate": "Moderate",
+    "unhealthySensitive": "Unhealthy for Sensitive",
+    "unhealthy": "Unhealthy",
+    "veryUnhealthy": "Very Unhealthy",
+    "hazardous": "LIFE THREATENING",
+    "unknown": "Unknown"
+  },
+  "purchased": "Purchased Sensor",
+  "purchasedBadge": "PURCHASED",
+  "dangerBadge": "DANGER",
+  "emptyState": "You have no active sensors yet. Connect a sensor to see live air-quality data on the map."
+}

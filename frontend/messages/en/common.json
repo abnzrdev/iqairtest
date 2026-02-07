@@ -1,0 +1,22 @@
+{
+  "brand": "Breez",
+  "live": "LIVE",
+  "activeSensors": "active sensors",
+  "loading": "Loading...",
+  "connectingSensors": "Connecting to sensors",
+  "unknown": "Unknown",
+  "sensor": "Sensor",
+  "location": "Location",
+  "deviceId": "Device ID",
+  "site": "Site",
+  "additionalParams": "Additional parameters:",
+  "temperature": "Temperature",
+  "humidity": "Humidity",
+  "pressure": "Pressure",
+  "place": "Place",
+  "indexAqi": "AQI Index",
+  "particles": "Particles (PM)",
+  "gases": "Gases",
+  "weatherConditions": "Weather conditions",
+  "lastUpdated": "Last updated"
+}

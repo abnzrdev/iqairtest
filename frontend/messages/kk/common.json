@@ -1,0 +1,22 @@
+{
+  "brand": "Breez",
+  "live": "LIVE",
+  "activeSensors": "белсенді сенсорлар",
+  "loading": "Жүктелуде...",
+  "connectingSensors": "Сенсорларға қосылу",
+  "unknown": "Белгісіз",
+  "sensor": "Сенсор",
+  "location": "Орналасқан жері",
+  "deviceId": "Құрылғы ID",
+  "site": "Орын",
+  "additionalParams": "Қосымша параметрлер:",
+  "temperature": "Температура",
+  "humidity": "Ылғалдылық",
+  "pressure": "Қысым",
+  "place": "Орын",
+  "indexAqi": "AQI индексі",
+  "particles": "Бөлшектер (PM)",
+  "gases": "Газдар",
+  "weatherConditions": "Ауа райы",
+  "lastUpdated": "Жаңартылды"
+}

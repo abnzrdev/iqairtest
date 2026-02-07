@@ -301,25 +301,23 @@ export default function Map3DPage() {
                   ref={globeRef}
                   globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
                   backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
-                  barsData={points}
-                  barLat="lat"
-                  barLng="lng"
-                  barAltitude={(d: any) => {
-                    // Высота столбца пропорциональна AQI (от 0.01 до 0.3)
+                  pointsData={points}
+                  pointLat="lat"
+                  pointLng="lng"
+                  pointAltitude={(d: any) => {
                     const aqi = d.aqi || 0;
                     return Math.max(0.01, Math.min(0.3, aqi / 1000));
                   }}
-                  barColor="color"
-                  barWidth={0.4}
-                  barLength={0.4}
-                  onBarHover={(bar: any, prevBar: any) => {
-                    if (bar) {
+                  pointColor="color"
+                  pointRadius={0.2}
+                  onPointHover={(point: any, prevPoint: any) => {
+                    if (point) {
                       document.body.style.cursor = 'pointer';
                     } else {
                       document.body.style.cursor = 'default';
                     }
                   }}
-                  barLabel={(d: any) => {
+                  pointLabel={(d: any) => {
                     const isSensor = d.source === 'sensor';
                     return `
                     <div style="

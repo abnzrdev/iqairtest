@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import type { LatLngTuple } from "leaflet";
 import L from "leaflet";
@@ -10,26 +10,6 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { cn } from "@/lib/utils";
 import type { MapReading } from "@/types/map-reading";
-
-const BASEMAPS = {
-  osm: {
-    name: "OpenStreetMap",
-    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: "&copy; OpenStreetMap contributors",
-  },
-  "3dkarta": {
-    name: "3D Карта",
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    attribution: "&copy; Esri &mdash; 3D Karta",
-  },
-  terrain: {
-    name: "Рельеф",
-    url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-    attribution: "&copy; OpenTopoMap contributors",
-  },
-} as const;
-
-type BasemapKey = keyof typeof BASEMAPS;
 
 const AQI_BREAKPOINTS = [
   { limit: 12, color: "#22c55e", label: "Good", range: "0-50", tw: "bg-green-500" },
@@ -210,7 +190,6 @@ export function AirQualityMap({
   className?: string;
 }) {
   const points = useMemo(() => aggregatePoints(readings), [readings]);
-  const [basemap, setBasemap] = useState<BasemapKey>("osm");
 
   const center = useMemo<LatLngTuple>(() => {
     if (points.length === 0) return DEFAULT_CENTER;
@@ -244,30 +223,13 @@ export function AirQualityMap({
     >
       <div className="relative flex flex-wrap items-center gap-4 overflow-visible border-b border-slate-800/60 bg-background/80 px-4 py-2 backdrop-blur">
         <LegendBar />
-        <div className="ml-auto flex items-center gap-1">
-          {(Object.keys(BASEMAPS) as BasemapKey[]).map((key) => (
-            <button
-              key={key}
-              onClick={() => setBasemap(key)}
-              className={cn(
-                "px-2 py-1 rounded text-xs font-medium transition-colors",
-                basemap === key
-                  ? "bg-green-500/30 text-green-300 border border-green-500/50"
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-              )}
-            >
-              {BASEMAPS[key].name}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="relative flex-1 overflow-hidden rounded-b-lg">
         <MapContainer center={center} zoom={5} scrollWheelZoom className="h-full w-full bg-background z-0">
           <TileLayer
-            key={basemap}
-            attribution={BASEMAPS[basemap].attribution}
-            url={BASEMAPS[basemap].url}
+            attribution="&copy; OpenStreetMap contributors"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <FitToMarkers points={points} />
           <ClusterLayer points={points} />

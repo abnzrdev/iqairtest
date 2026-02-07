@@ -28,7 +28,7 @@ export default function CitySelector({ onCitySelect, selectedCity }: CitySelecto
     try {
       const data = await airQualityAPI.getCities();
       // Фильтруем только Алматы или используем дефолтный список
-      const almatyCities = data.cities?.filter(c => 
+      const almatyCities = data.cities?.filter((c: { city: string; country?: string }) => 
         c.city.toLowerCase() === 'almaty' || 
         (c.city === 'Almaty' && c.country === 'Kazakhstan')
       ) || [{ city: 'Almaty', state: 'Almaty', country: 'Kazakhstan', lat: 43.2220, lon: 76.8512 }];

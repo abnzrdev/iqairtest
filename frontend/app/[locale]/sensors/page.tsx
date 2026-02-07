@@ -5,7 +5,7 @@ import { sensorAPI, authAPI, Sensor, User } from '@/lib/api';
 import toast from 'react-hot-toast';
 import Cookies from 'js-cookie';
 import Navigation from '@/components/Navigation';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 export default function SensorsPage() {
   const [user, setUser] = useState<User | null>(null);

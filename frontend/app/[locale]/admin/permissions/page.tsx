@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { adminAPI, authAPI, Sensor, AdminUser, User } from '@/lib/api';
 import toast from 'react-hot-toast';
 import Cookies from 'js-cookie';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { useRouter } from 'next/navigation';
 
 export default function AdminPermissionsPage() {

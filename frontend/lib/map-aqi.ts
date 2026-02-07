@@ -1,0 +1,97 @@
+/**
+ * AQI category and styling for map markers and filters.
+ * Pure helpers for consistent UI and filtering.
+ */
+
+export type AqiCategoryKey =
+  | 'good'
+  | 'moderate'
+  | 'unhealthy'
+  | 'critical';
+
+export type SensorFilterValue = 'all' | AqiCategoryKey;
+
+export interface AqiCategory {
+  key: AqiCategoryKey;
+  label: string;
+  color: string;
+  /** Tailwind ring/glow class (e.g. ring-green-500/60) */
+  ringClass: string;
+  /** Tailwind bg class for marker */
+  bgClass: string;
+  /** For dangerous levels: pulse animation */
+  isDangerous: boolean;
+}
+
+const CATEGORIES: Record<AqiCategoryKey, Omit<AqiCategory, 'key'>> = {
+  good: {
+    label: 'Good',
+    color: '#00e400',
+    ringClass: 'ring-green-500/60',
+    bgClass: 'bg-[#00e400]',
+    isDangerous: false,
+  },
+  moderate: {
+    label: 'Moderate',
+    color: '#ffff00',
+    ringClass: 'ring-yellow-400/60',
+    bgClass: 'bg-[#ffff00]',
+    isDangerous: false,
+  },
+  unhealthy: {
+    label: 'Unhealthy',
+    color: '#ff7e00',
+    ringClass: 'ring-orange-500/60',
+    bgClass: 'bg-[#ff7e00]',
+    isDangerous: false,
+  },
+  critical: {
+    label: 'Critical',
+    color: '#7e0023',
+    ringClass: 'ring-red-600/70',
+    bgClass: 'bg-[#7e0023]',
+    isDangerous: true,
+  },
+};
+
+/**
+ * Get AQI category for a numeric AQI value (US scale 0–500).
+ */
+export function getAqiCategory(aqi: number): AqiCategory {
+  const key: AqiCategoryKey =
+    aqi <= 50
+      ? 'good'
+      : aqi <= 100
+        ? 'moderate'
+        : aqi <= 200
+          ? 'unhealthy'
+          : 'critical';
+  return { key, ...CATEGORIES[key] };
+}
+
+/**
+ * Get hex color for a given AQI (for inline styles where needed).
+ */
+export function getAqiColor(aqi: number): string {
+  return getAqiCategory(aqi).color;
+}
+
+/**
+ * Whether the given sensor passes the selected filter.
+ */
+export function sensorMatchesFilter(
+  aqi: number,
+  filter: SensorFilterValue
+): boolean {
+  if (filter === 'all') return true;
+  const category = getAqiCategory(aqi);
+  return category.key === filter;
+}
+
+export const SENSOR_FILTER_OPTIONS: { value: SensorFilterValue; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'good', label: 'Good' },
+  { value: 'moderate', label: 'Moderate' },
+  { value: 'unhealthy', label: 'Unhealthy' },
+  { value: 'critical', label: 'Critical' },
+];

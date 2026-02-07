@@ -1,0 +1,20 @@
+{
+  "title": "About Breez",
+  "subtitle": "Leader in air monitoring and purification",
+  "aboutUs": "About us",
+  "aboutText1": "Breez is a leading company in air monitoring and purification, founded in 1963. We specialize in creating innovative solutions to improve air quality in homes, offices, and public spaces.",
+  "aboutText2": "Our mission is to make air quality information accessible to everyone, so that everyone can make informed decisions about their health and the health of their loved ones.",
+  "aboutText3": "With over 50 million users worldwide, Breez is a trusted partner for thousands of corporations, schools, hospitals, and government organizations.",
+  "ourTeam": "Our team",
+  "careers": "Careers",
+  "careersText": "Join the Breez team and help us make the air cleaner for everyone!",
+  "positions": ["Senior Software Engineer", "Data Scientist", "Product Manager", "Marketing Specialist"],
+  "location": "Almaty, Kazakhstan • Full-time",
+  "apply": "Apply",
+  "contacts": "Contacts",
+  "officeAlmaty": "Office in Almaty",
+  "contactUs": "Contact us",
+  "yourName": "Your name",
+  "message": "Message",
+  "send": "Send"
+}

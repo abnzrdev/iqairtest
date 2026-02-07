@@ -1,6 +1,7 @@
 'use client';
 
 import Navigation from '@/components/Navigation';
+import AlmatyMap from '@/components/map/AlmatyMap';
 import { useState } from 'react';
 
 export default function AirQualityPage() {
@@ -58,18 +59,7 @@ export default function AirQualityPage() {
 
         {/* Content */}
         <div className="glass-strong rounded-2xl sm:rounded-3xl border border-green-500/30 p-4 sm:p-6 md:p-8">
-          {selectedTab === 'map' && (
-            <div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 sm:mb-6">Интерактивная карта качества воздуха</h2>
-              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/5 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center">
-                <div className="text-5xl sm:text-6xl mb-4">🗺️</div>
-                <p className="text-gray-300 text-base sm:text-lg">Карта качества воздуха доступна на главной странице</p>
-                <a href="/" className="inline-block mt-4 px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:scale-105 transition-transform text-sm sm:text-base">
-                  Перейти к карте
-                </a>
-              </div>
-            </div>
-          )}
+          {selectedTab === 'map' && <AlmatyMap />}
 
           {selectedTab === 'ranking' && (
             <div>

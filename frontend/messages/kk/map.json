@@ -1,0 +1,44 @@
+{
+  "title": "Ауа сапасы картасы",
+  "live": "LIVE",
+  "activeSensorsCount": "{count} белсенді сенсор",
+  "activeSensor": "белсенді сенсор",
+  "style": "Стиль",
+  "filter": "Сүзгі",
+  "filterByAqi": "Сенсорларды AQI категориясы бойынша сүзгілеу",
+  "retry": "Қайталау",
+  "standard": "Стандарт",
+  "good": "Жақсы",
+  "critical": "Сыни",
+  "filter": {
+    "all": "Барлығы",
+    "unhealthy": "Денсаулыққа зиянды",
+    "healthy": "Жақсы"
+  },
+  "styleDark": "Қараңғы",
+  "styleSatellite": "3D/Спутник",
+  "styleGroup": "Карта стилі",
+  "filterGroup": "Сенсорларды AQI бойынша сүзгілеу",
+  "aqi": {
+    "good": "Жақсы",
+    "moderate": "Орташа",
+    "unhealthySensitive": "Сезімтал топтар үшін зиянды",
+    "unhealthy": "Денсаулыққа зиянды",
+    "veryUnhealthy": "Өте зиянды",
+    "hazardous": "Қауіпті",
+    "critical": "Сыни"
+  },
+  "danger": {
+    "safe": "Қауіпсіз",
+    "moderate": "Орташа",
+    "unhealthySensitive": "Сезімталдарға зиянды",
+    "unhealthy": "Зиянды",
+    "veryUnhealthy": "Өте зиянды",
+    "hazardous": "ӨМІРГЕ ҚАУІПТІ",
+    "unknown": "Белгісіз"
+  },
+  "purchased": "Төленетін сенсор",
+  "purchasedBadge": "САТЫП АЛЫНДЫ",
+  "dangerBadge": "ҚАУІП",
+  "emptyState": "Сізде әлі белсенді сенсорлар жоқ. Картада ауа сапасы деректерін көру үшін сенсорды қосыңыз."
+}

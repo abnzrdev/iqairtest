@@ -1,0 +1,44 @@
+{
+  "title": "Карта качества воздуха",
+  "live": "LIVE",
+  "activeSensorsCount": "{count} активных датчиков",
+  "activeSensor": "активных датчиков",
+  "style": "Стиль",
+  "filter": "Фильтр",
+  "filterByAqi": "Фильтр датчиков по категории AQI",
+  "retry": "Повторить",
+  "standard": "Стандарт",
+  "good": "Хорошо",
+  "critical": "Критично",
+  "filter": {
+    "all": "Все",
+    "unhealthy": "Нездорово",
+    "healthy": "Здорово"
+  },
+  "styleDark": "Тёмная",
+  "styleSatellite": "3D/Спутник",
+  "styleGroup": "Стиль карты",
+  "filterGroup": "Фильтр датчиков по AQI",
+  "aqi": {
+    "good": "Хорошо",
+    "moderate": "Умеренно",
+    "unhealthySensitive": "Нездорово для чувствительных групп",
+    "unhealthy": "Нездорово",
+    "veryUnhealthy": "Очень нездорово",
+    "hazardous": "Опасно",
+    "critical": "Критично"
+  },
+  "danger": {
+    "safe": "Безопасно",
+    "moderate": "Умеренно",
+    "unhealthySensitive": "Нездорово для чувствительных",
+    "unhealthy": "Нездорово",
+    "veryUnhealthy": "Очень нездорово",
+    "hazardous": "ОПАСНО ДЛЯ ЖИЗНИ",
+    "unknown": "Неизвестно"
+  },
+  "purchased": "Платный датчик",
+  "purchasedBadge": "КУПЛЕНО",
+  "dangerBadge": "ОПАСНО",
+  "emptyState": "У вас пока нет активных датчиков. Подключите датчик, чтобы видеть данные о качестве воздуха на карте."
+}

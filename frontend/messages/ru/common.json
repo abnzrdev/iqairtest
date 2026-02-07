@@ -1,0 +1,22 @@
+{
+  "brand": "Breez",
+  "live": "LIVE",
+  "activeSensors": "активных датчиков",
+  "loading": "Загрузка...",
+  "connectingSensors": "Подключение к датчикам",
+  "unknown": "Неизвестно",
+  "sensor": "Датчик",
+  "location": "Местоположение",
+  "deviceId": "Датчик",
+  "site": "Место",
+  "additionalParams": "Дополнительные параметры:",
+  "temperature": "Температура",
+  "humidity": "Влажность",
+  "pressure": "Давление",
+  "place": "Место",
+  "indexAqi": "Индекс AQI",
+  "particles": "Частицы (PM)",
+  "gases": "Газы",
+  "weatherConditions": "Погодные условия",
+  "lastUpdated": "Обновлено"
+}

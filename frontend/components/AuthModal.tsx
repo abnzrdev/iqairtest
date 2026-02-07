@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 interface AuthModalProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -10,6 +11,7 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ onLogin, onRegister }: AuthModalProps) {
+  const t = useTranslations('auth');
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,13 +25,13 @@ export default function AuthModal({ onLogin, onRegister }: AuthModalProps) {
     try {
       if (isLogin) {
         await onLogin(email, password);
-        toast.success('Logged in successfully!');
+        toast.success(t('loginSuccess'));
       } else {
         await onRegister(email, password, name);
-        toast.success('Registered successfully!');
+        toast.success(t('registerSuccess'));
       }
     } catch (error: any) {
-      toast.error(error.message || 'Authentication failed');
+      toast.error(error.message || t('authFailed'));
     } finally {
       setLoading(false);
     }
@@ -56,10 +58,10 @@ export default function AuthModal({ onLogin, onRegister }: AuthModalProps) {
               <span className="text-4xl font-black bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">Breez</span>
             </div>
             <h2 className="text-3xl font-black text-white mb-2">
-              {isLogin ? 'Добро пожаловать' : 'Создать аккаунт'}
+              {isLogin ? t('welcome') : t('createAccount')}
             </h2>
             <p className="text-gray-300 text-sm">
-              {isLogin ? 'Войдите, чтобы продолжить' : 'Присоединяйтесь к мониторингу качества воздуха'}
+              {isLogin ? t('loginSubtitle') : t('registerSubtitle')}
             </p>
           </div>
         </div>
@@ -70,7 +72,7 @@ export default function AuthModal({ onLogin, onRegister }: AuthModalProps) {
             {!isLogin && (
               <div className="space-y-2">
                 <label className="block text-sm font-bold text-gray-300 mb-2">
-                  Полное имя
+                  {t('fullName')}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -84,7 +86,7 @@ export default function AuthModal({ onLogin, onRegister }: AuthModalProps) {
                     onChange={(e) => setName(e.target.value)}
                     required
                     className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-700/50 rounded-xl focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all bg-[#0f0f0f] text-white placeholder-gray-500 hover:border-gray-600"
-                    placeholder="Иван Иванов"
+                    placeholder={t('fullNamePlaceholder')}
                   />
                 </div>
               </div>
@@ -92,7 +94,7 @@ export default function AuthModal({ onLogin, onRegister }: AuthModalProps) {
 
             <div className="space-y-2">
               <label className="block text-sm font-bold text-gray-300 mb-2">
-                Email адрес
+                {t('email')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -113,7 +115,7 @@ export default function AuthModal({ onLogin, onRegister }: AuthModalProps) {
 
             <div className="space-y-2">
               <label className="block text-sm font-bold text-gray-300 mb-2">
-                Пароль
+                {t('password')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -143,10 +145,10 @@ export default function AuthModal({ onLogin, onRegister }: AuthModalProps) {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Обработка...
+                  {t('processing')}
                 </span>
               ) : (
-                isLogin ? 'Войти' : 'Создать аккаунт'
+                isLogin ? t('signIn') : t('createAccountButton')
               )}
             </button>
           </form>
@@ -163,13 +165,13 @@ export default function AuthModal({ onLogin, onRegister }: AuthModalProps) {
             >
               {isLogin ? (
                 <>
-                  Нет аккаунта?{' '}
-                  <span className="text-green-400 font-bold">Зарегистрироваться</span>
+                  {t('noAccount')}{' '}
+                  <span className="text-green-400 font-bold">{t('register')}</span>
                 </>
               ) : (
                 <>
-                  Уже есть аккаунт?{' '}
-                  <span className="text-green-400 font-bold">Войти</span>
+                  {t('haveAccount')}{' '}
+                  <span className="text-green-400 font-bold">{t('signIn')}</span>
                 </>
               )}
             </button>
