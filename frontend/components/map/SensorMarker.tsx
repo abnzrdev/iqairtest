@@ -154,123 +154,134 @@ function SensorMarkerInner({ sensor }: SensorMarkerProps) {
   }
 
   const data = sensor.airQualityData;
+  const pm1  = data?.current?.pollution?.pm1  ?? params.pm1  ?? 0;
   const pm25 = data?.current?.pollution?.pm25 ?? params.pm25 ?? 0;
   const pm10 = data?.current?.pollution?.pm10 ?? params.pm10 ?? 0;
-  const co2 = data?.current?.pollution?.co2 ?? params.co2 ?? 0;
-  const no2 = data?.current?.pollution?.no2 ?? params.no2 ?? 0;
+  const co2  = data?.current?.pollution?.co2  ?? params.co2  ?? 0;
+  const co   = data?.current?.pollution?.co   ?? params.co   ?? 0;
+  const no2  = data?.current?.pollution?.no2  ?? params.no2  ?? 0;
+  const o3   = data?.current?.pollution?.o3   ?? params.o3   ?? 0;
+  const voc  = params.voc  ?? 0;
+  const ch2o = params.ch2o ?? 0;
   const temp = data?.current?.weather?.tp ?? params.temp ?? null;
-  const hum = data?.current?.weather?.hu ?? params.hum ?? null;
-  const ts = data?.current?.pollution?.ts;
+  const hum  = data?.current?.weather?.hu ?? params.hum  ?? null;
+  const ts   = data?.current?.pollution?.ts;
   const siteName = data?.sensor_data?.site ?? sensor.name ?? data?.city ?? 'Station';
-  const locationText = [data?.state ?? sensor.state ?? '', data?.country ?? sensor.country ?? ''].filter(Boolean).join(', ') || '—';
+  const locationText = [sensor.city ?? data?.city ?? '', sensor.country ?? data?.country ?? ''].filter(Boolean).join(', ') || '—';
 
   return (
     <Marker position={position} icon={icon}>
-      <Popup className="custom-popup" aria-label={`Sensor details: ${siteName}`}>
+      <Popup className="custom-popup" maxWidth={360} aria-label={`Sensor details: ${siteName}`}>
         <div
-          className={`p-3 sm:p-4 md:p-5 min-w-[240px] sm:min-w-[280px] text-white rounded-lg ${
-            category.isDangerous ? 'bg-gradient-to-br from-red-900/90 to-red-800/90' : 'bg-[#1a1a1a]'
+          className={`p-4 min-w-[300px] max-w-[360px] text-white rounded-lg ${
+            category.isDangerous ? 'bg-gradient-to-br from-red-900/95 to-red-800/95' : 'bg-gradient-to-br from-[#111] to-[#1a1a2e]'
           }`}
         >
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 mb-2 sm:mb-3">
-            <h3 className="font-black text-lg sm:text-xl text-white">{siteName}</h3>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-black text-xl text-white">{siteName}</h3>
             {category.isDangerous && (
               <span className="px-2 py-1 bg-red-600 rounded text-xs font-bold animate-pulse">
                 {t('dangerBadge')}
               </span>
             )}
           </div>
-          <p className="text-xs sm:text-sm text-gray-300 mb-3 sm:mb-4">{locationText}</p>
+          <p className="text-xs text-gray-400 mb-3">{locationText}</p>
+
+          {/* AQI badge */}
           <div
-            className="px-3 sm:px-4 py-2 sm:py-3 rounded-xl text-white font-bold text-center mb-3 sm:mb-4 shadow-lg"
+            className="px-4 py-3 rounded-xl text-white font-bold text-center mb-4 shadow-lg"
             style={{ backgroundColor: category.color }}
           >
-            <div className="text-2xl sm:text-3xl font-black mb-1">{aqi}</div>
-            <div className="text-xs sm:text-sm opacity-90">{aqiLabel}</div>
+            <div className="text-3xl font-black mb-0.5">{aqi}</div>
+            <div className="text-xs opacity-90">{aqiLabel}</div>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4">
-            <div className="bg-white/5 rounded-lg p-2 sm:p-3 border border-white/10">
-              <div className="text-xs text-gray-400 mb-1">PM2.5</div>
-              <div className="text-base sm:text-lg font-bold text-white">{pm25.toFixed(1)}</div>
-              <div className="text-xs text-gray-500">µg/m³</div>
-            </div>
-            <div className="bg-white/5 rounded-lg p-2 sm:p-3 border border-white/10">
-              <div className="text-xs text-gray-400 mb-1">PM10</div>
-              <div className="text-base sm:text-lg font-bold text-white">{pm10.toFixed(1)}</div>
-              <div className="text-xs text-gray-500">µg/m³</div>
-            </div>
-            <div className="bg-white/5 rounded-lg p-2 sm:p-3 border border-white/10">
-              <div className="text-xs text-gray-400 mb-1">CO₂</div>
-              <div className="text-base sm:text-lg font-bold text-white">{co2}</div>
-              <div className="text-xs text-gray-500">ppm</div>
-            </div>
-            <div className="bg-white/5 rounded-lg p-2 sm:p-3 border border-white/10">
-              <div className="text-xs text-gray-400 mb-1">NO₂</div>
-              <div className="text-base sm:text-lg font-bold text-white">{no2.toFixed(1)}</div>
-              <div className="text-xs text-gray-500">ppb</div>
+
+          {/* Particles section */}
+          <div className="mb-3">
+            <div className="text-[10px] font-bold text-green-400 mb-1.5 uppercase tracking-widest">Частицы</div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-white/5 rounded-lg p-2 border border-white/10 text-center">
+                <div className="text-[10px] text-gray-400">PM1</div>
+                <div className="text-lg font-black text-white leading-tight">{pm1.toFixed(0)}</div>
+                <div className="text-[9px] text-gray-500">µg/m³</div>
+              </div>
+              <div className="bg-white/5 rounded-lg p-2 border border-green-500/20 text-center">
+                <div className="text-[10px] text-green-400 font-semibold">PM2.5</div>
+                <div className="text-lg font-black text-white leading-tight">{pm25.toFixed(1)}</div>
+                <div className="text-[9px] text-gray-500">µg/m³</div>
+              </div>
+              <div className="bg-white/5 rounded-lg p-2 border border-white/10 text-center">
+                <div className="text-[10px] text-gray-400">PM10</div>
+                <div className="text-lg font-black text-white leading-tight">{pm10.toFixed(0)}</div>
+                <div className="text-[9px] text-gray-500">µg/m³</div>
+              </div>
             </div>
           </div>
-          {/* Extra gas parameters when available */}
-          {(params.co || params.voc || params.ch2o || params.o3) ? (
+
+          {/* Gases section */}
+          <div className="mb-3 border-t border-white/10 pt-3">
+            <div className="text-[10px] font-bold text-cyan-400 mb-1.5 uppercase tracking-widest">Газы</div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-white/5 rounded p-2 text-center">
+                <div className="text-[10px] text-gray-400">CO₂</div>
+                <div className="text-sm font-bold text-white">{co2.toFixed(0)}</div>
+                <div className="text-[9px] text-gray-500">ppm</div>
+              </div>
+              <div className="bg-white/5 rounded p-2 text-center">
+                <div className="text-[10px] text-gray-400">CO</div>
+                <div className="text-sm font-bold text-white">{co.toFixed(2)}</div>
+                <div className="text-[9px] text-gray-500">ppm</div>
+              </div>
+              <div className="bg-white/5 rounded p-2 text-center">
+                <div className="text-[10px] text-gray-400">CH₂O</div>
+                <div className="text-sm font-bold text-white">{ch2o.toFixed(2)}</div>
+                <div className="text-[9px] text-gray-500">ppm</div>
+              </div>
+              <div className="bg-white/5 rounded p-2 text-center">
+                <div className="text-[10px] text-gray-400">VOC</div>
+                <div className="text-sm font-bold text-white">{voc.toFixed(2)}</div>
+                <div className="text-[9px] text-gray-500">ppm</div>
+              </div>
+              <div className="bg-white/5 rounded p-2 text-center">
+                <div className="text-[10px] text-gray-400">O₃</div>
+                <div className="text-sm font-bold text-white">{o3.toFixed(1)}</div>
+                <div className="text-[9px] text-gray-500">ppb</div>
+              </div>
+              <div className="bg-white/5 rounded p-2 text-center">
+                <div className="text-[10px] text-gray-400">NO₂</div>
+                <div className="text-sm font-bold text-white">{no2.toFixed(1)}</div>
+                <div className="text-[9px] text-gray-500">ppb</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Environment section */}
+          {(temp != null || hum != null) && (
             <div className="border-t border-white/10 pt-3 mb-3">
-              <div className="text-xs font-bold text-green-300 mb-2 uppercase tracking-wide">{tCommon('additionalParams')}</div>
+              <div className="text-[10px] font-bold text-amber-400 mb-1.5 uppercase tracking-widest">Среда</div>
               <div className="grid grid-cols-2 gap-2">
-                {params.co != null && params.co > 0 && (
-                  <div className="bg-white/5 rounded p-2">
-                    <div className="text-xs text-gray-400">CO</div>
-                    <div className="text-sm font-bold text-white">{params.co.toFixed(2)} ppm</div>
+                {temp != null && (
+                  <div className="bg-white/5 rounded p-2 text-center">
+                    <div className="text-[10px] text-gray-400">Темп.</div>
+                    <div className="text-sm font-bold text-white">{Number(temp).toFixed(1)}°C</div>
                   </div>
                 )}
-                {params.voc != null && params.voc > 0 && (
-                  <div className="bg-white/5 rounded p-2">
-                    <div className="text-xs text-gray-400">VOC</div>
-                    <div className="text-sm font-bold text-white">{params.voc.toFixed(2)} ppm</div>
-                  </div>
-                )}
-                {params.o3 != null && params.o3 > 0 && (
-                  <div className="bg-white/5 rounded p-2">
-                    <div className="text-xs text-gray-400">O₃</div>
-                    <div className="text-sm font-bold text-white">{params.o3.toFixed(1)} ppb</div>
-                  </div>
-                )}
-                {params.ch2o != null && params.ch2o > 0 && (
-                  <div className="bg-white/5 rounded p-2">
-                    <div className="text-xs text-gray-400">CH₂O</div>
-                    <div className="text-sm font-bold text-white">{params.ch2o.toFixed(3)} ppm</div>
+                {hum != null && (
+                  <div className="bg-white/5 rounded p-2 text-center">
+                    <div className="text-[10px] text-gray-400">Влажность</div>
+                    <div className="text-sm font-bold text-white">{Number(hum).toFixed(0)}%</div>
                   </div>
                 )}
               </div>
             </div>
-          ) : null}
-          {data?.sensor_data && (
-            <div className="mb-2 sm:mb-3 text-xs border-t border-white/10 pt-2 sm:pt-3">
-              <p className="text-gray-300 mb-1">
-                <span className="font-semibold text-white">{tCommon('deviceId')}:</span> {data.sensor_data.device_id}
-              </p>
-              <p className="text-gray-300">
-                <span className="font-semibold text-white">{tCommon('site')}:</span> {data.sensor_data.site}
-              </p>
-            </div>
           )}
-          {(temp != null || hum != null) && (
-            <div className="text-xs sm:text-sm border-t border-white/10 pt-2 sm:pt-3 flex flex-col sm:flex-row justify-between gap-2 sm:gap-0">
-              {temp != null && (
-                <div>
-                  <span className="text-gray-400">{tCommon('temperature')}:</span>
-                  <span className="text-white font-semibold ml-2">{temp}°C</span>
-                </div>
-              )}
-              {hum != null && (
-                <div>
-                  <span className="text-gray-400">{tCommon('humidity')}:</span>
-                  <span className="text-white font-semibold ml-2">{hum}%</span>
-                </div>
-              )}
-            </div>
-          )}
-          <p className="text-xs text-gray-500 border-t border-white/10 pt-2 mt-2">
-            {tCommon('lastUpdated')}: {formatLastUpdated(ts)}
-          </p>
+
+          {/* Footer */}
+          <div className="border-t border-white/10 pt-2 text-[10px] text-gray-500 flex justify-between">
+            <span>{sensor.name || siteName}</span>
+            <span>{ts ? formatLastUpdated(ts) : 'Live'}</span>
+          </div>
         </div>
       </Popup>
     </Marker>
