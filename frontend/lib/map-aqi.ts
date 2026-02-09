@@ -15,6 +15,8 @@ export interface AqiCategory {
   key: AqiCategoryKey;
   label: string;
   color: string;
+  /** Text color for contrast on the category background */
+  textColor: string;
   /** Tailwind ring/glow class (e.g. ring-green-500/60) */
   ringClass: string;
   /** Tailwind bg class for marker */
@@ -27,6 +29,7 @@ const CATEGORIES: Record<AqiCategoryKey, Omit<AqiCategory, 'key'>> = {
   good: {
     label: 'Good',
     color: '#00e400',
+    textColor: '#000000',
     ringClass: 'ring-green-500/60',
     bgClass: 'bg-[#00e400]',
     isDangerous: false,
@@ -34,6 +37,7 @@ const CATEGORIES: Record<AqiCategoryKey, Omit<AqiCategory, 'key'>> = {
   moderate: {
     label: 'Moderate',
     color: '#ffff00',
+    textColor: '#000000',
     ringClass: 'ring-yellow-400/60',
     bgClass: 'bg-[#ffff00]',
     isDangerous: false,
@@ -41,6 +45,7 @@ const CATEGORIES: Record<AqiCategoryKey, Omit<AqiCategory, 'key'>> = {
   unhealthy: {
     label: 'Unhealthy',
     color: '#ff7e00',
+    textColor: '#000000',
     ringClass: 'ring-orange-500/60',
     bgClass: 'bg-[#ff7e00]',
     isDangerous: false,
@@ -48,6 +53,7 @@ const CATEGORIES: Record<AqiCategoryKey, Omit<AqiCategory, 'key'>> = {
   critical: {
     label: 'Critical',
     color: '#7e0023',
+    textColor: '#ffffff',
     ringClass: 'ring-red-600/70',
     bgClass: 'bg-[#7e0023]',
     isDangerous: true,

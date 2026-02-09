@@ -194,8 +194,8 @@ function SensorMarkerInner({ sensor, onClick }: SensorMarkerProps) {
 
           {/* AQI badge */}
           <div
-            className="px-4 py-3 rounded-xl text-white font-bold text-center mb-4 shadow-lg"
-            style={{ backgroundColor: category.color }}
+            className="px-4 py-3 rounded-xl font-bold text-center mb-4 shadow-lg"
+            style={{ backgroundColor: category.color, color: category.textColor }}
           >
             <div className="text-3xl font-black mb-0.5">{aqi}</div>
             <div className="text-xs opacity-90">{aqiLabel}</div>

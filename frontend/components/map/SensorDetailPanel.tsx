@@ -55,11 +55,11 @@ export function SensorDetailPanel({ sensor }: SensorDetailPanelProps) {
         {/* AQI */}
         <div
           className="rounded-2xl p-4 text-center shadow-lg"
-          style={{ backgroundColor: category.color }}
+          style={{ backgroundColor: category.color, color: category.textColor }}
         >
-          <div className="text-5xl font-black text-white mb-1">{aqi}</div>
-          <div className="text-sm text-white/90 font-medium">{category.label}</div>
-          <div className="text-xs text-white/60 mt-0.5">AQI (US EPA)</div>
+          <div className="text-5xl font-black mb-1">{aqi}</div>
+          <div className="text-sm font-medium" style={{ opacity: 0.85 }}>{category.label}</div>
+          <div className="text-xs mt-0.5" style={{ opacity: 0.6 }}>AQI (US EPA)</div>
         </div>
 
         {/* Particles */}
