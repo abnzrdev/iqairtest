@@ -112,25 +112,65 @@ export function useSensorsOnMap(
     }
     setError(null);
     try {
-      const [airQualityData, purchasedSensors] = await Promise.all([
-        airQualityAPI.getAllAirQuality(),
-        userId ? sensorAPI.mapSensors().catch(() => []) : Promise.resolve([]),
-      ]);
+      // Загружаем только данные из /api/map-data (реалтайм данные от активного устройства)
+      const mapDataResponse = await fetch('/api/map-data')
+        .then(res => {
+          if (!res.ok) {
+            console.warn('[SensorsOnMap] API response not OK:', res.status, res.statusText);
+            return null;
+          }
+          return res.json();
+        })
+        .then(data => {
+          if (data?.success && Array.isArray(data.data)) {
+            console.log('[SensorsOnMap] Received data:', data.data.length, 'items');
+            return data.data;
+          }
+          console.warn('[SensorsOnMap] Invalid data format:', data);
+          return [];
+        })
+        .catch((err) => {
+          console.error('[SensorsOnMap] Fetch error:', err);
+          return [];
+        });
 
-      const airSensors: MapSensor[] = [];
-      (airQualityData || []).forEach((aq, i) => {
-        const s = airQualityToMapSensor(aq, i);
-        if (s) airSensors.push(s);
-      });
+      // Преобразуем данные из /api/map-data в MapSensor
+      // Показываем только данные от активного устройства
+      const mapDataSensors: MapSensor[] = [];
+      if (Array.isArray(mapDataResponse) && mapDataResponse.length > 0) {
+        mapDataResponse.forEach((item: any, i: number) => {
+          if (item?.location) {
+            const [lat, lng] = item.location.split(',').map((v: string) => parseFloat(v.trim()));
+            if (!isNaN(lat) && !isNaN(lng)) {
+              mapDataSensors.push({
+                id: `map-data-${item.sensorId || i}`,
+                lat,
+                lng,
+                aqi: item.value || 0,
+                isPurchased: false,
+                name: item.sensorId || 'Sensor',
+                city: 'Almaty',
+                country: 'KZ',
+                parameters: { pm25: item.value },
+              });
+            } else {
+              console.warn('[SensorsOnMap] Invalid coordinates:', item.location);
+            }
+          } else {
+            console.warn('[SensorsOnMap] Missing location in item:', item);
+          }
+        });
+      }
 
-      const purchasedList = Array.isArray(purchasedSensors) ? purchasedSensors : [];
-      const validPurchased = purchasedList.filter((s: any) => s?.lat && s?.lng);
-      const sensorItems: MapSensor[] = validPurchased.map((s, i) =>
-        purchasedSensorToMapSensor(s, i)
-      ).filter((s): s is MapSensor => s !== null);
-
-      setAllAirQuality(airQualityData || []);
-      setSensors([...airSensors, ...sensorItems]);
+      console.log('[SensorsOnMap] Processed sensors:', mapDataSensors.length, mapDataSensors);
+      
+      // Показываем только данные от активного устройства
+      setAllAirQuality([]);
+      setSensors(mapDataSensors);
+      
+      if (mapDataSensors.length === 0 && mapDataResponse.length > 0) {
+        console.error('[SensorsOnMap] Failed to process sensors from response:', mapDataResponse);
+      }
       lastErrorRef.current = null;
       consecutiveFailures.current = 0;
     } catch (e: any) {

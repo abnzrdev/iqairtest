@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef } from 'react';
 import { authAPI, airQualityAPI, AirQualityData } from '@/lib/api';
-import { useUserSensors } from '@/hooks/useUserSensors';
+import { useSensorsOnMap } from '@/hooks/useSensorsOnMap';
 import AirQualityCard from '@/components/AirQualityCard';
 import AuthModal from '@/components/AuthModal';
 import Navigation from '@/components/Navigation';
@@ -24,9 +24,9 @@ export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // User's own sensors only – no global/third-party data on the map
+  // Загружаем данные со всех источников, включая данные из БД
   const { sensors, loading: mapLoading, error: mapError, refetch: refetchMap } =
-    useUserSensors({
+    useSensorsOnMap({
       userId: user?.id ?? null,
       refetchIntervalMs: 5000,
     });

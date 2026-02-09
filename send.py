@@ -6,7 +6,7 @@ import os
 import sys
 
 # --- НАСТРОЙКИ ---
-API_URL = "http://89.218.178.215:8087/data"
+API_URL = "http://89.218.178.215:8005/data"
 BUFFER_FILE = "sensor_buffer.jsonl"
 SERIAL_PORT = '/dev/ttyUSB0'  # Проверьте ваш порт
 BAUD_RATE = 9600
