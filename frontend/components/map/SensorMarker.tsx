@@ -154,7 +154,6 @@ function SensorMarkerInner({ sensor }: SensorMarkerProps) {
   }
 
   const data = sensor.airQualityData;
-  const params = sensor.parameters ?? {};
   const pm25 = data?.current?.pollution?.pm25 ?? params.pm25 ?? 0;
   const pm10 = data?.current?.pollution?.pm10 ?? params.pm10 ?? 0;
   const co2 = data?.current?.pollution?.co2 ?? params.co2 ?? 0;
