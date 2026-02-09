@@ -12,6 +12,7 @@ function createMarkerIcon(sensor: MapSensor): L.DivIcon {
   const isPurchased = sensor.isPurchased;
   const category = getAqiCategory(aqi);
   const color = isPurchased ? '#00d8ff' : category.color;
+  const textColor = isPurchased ? '#000000' : category.textColor;
   const size = category.isDangerous ? 50 : isPurchased ? 48 : 42;
   const classes = [
     'marker-aqi-bubble',
@@ -22,7 +23,7 @@ function createMarkerIcon(sensor: MapSensor): L.DivIcon {
   const html = `
     <div
       class="${classes.join(' ')}"
-      style="--aqi-color: ${color}; --aqi-size: ${size}px;"
+      style="--aqi-color: ${color}; --aqi-size: ${size}px; color: ${textColor};"
       role="img"
       aria-label="Sensor AQI ${aqi}, ${category.label}"
     >
