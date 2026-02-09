@@ -23,9 +23,10 @@ interface MapCardProps {
   loading?: boolean;
   error?: string | null;
   onRefetch?: () => void;
+  onSensorClick?: (sensor: MapSensor) => void;
 }
 
-export function MapCard({ sensors, loading, error, onRefetch }: MapCardProps) {
+export function MapCard({ sensors, loading, error, onRefetch, onSensorClick }: MapCardProps) {
   const t = useTranslations('map');
   const [mapStyle, setMapStyle] = useState<MapStyleValue>('standard');
   const [filter, setFilter] = useState<SensorFilterValue>('all');
@@ -170,7 +171,7 @@ export function MapCard({ sensors, loading, error, onRefetch }: MapCardProps) {
               mapStyle={mapStyle}
             >
               {filteredSensors.map((sensor) => (
-                <SensorMarker key={sensor.id} sensor={sensor} />
+                <SensorMarker key={sensor.id} sensor={sensor} onClick={onSensorClick} />
               ))}
             </MapViewDynamic>
 

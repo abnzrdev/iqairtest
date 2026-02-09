@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, memo } from 'react';
+import { useMemo, useCallback, memo } from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { useTranslations } from 'next-intl';
@@ -55,9 +55,10 @@ function formatLastUpdated(ts?: string): string {
 
 interface SensorMarkerProps {
   sensor: MapSensor;
+  onClick?: (sensor: MapSensor) => void;
 }
 
-function SensorMarkerInner({ sensor }: SensorMarkerProps) {
+function SensorMarkerInner({ sensor, onClick }: SensorMarkerProps) {
   const t = useTranslations('map');
   const tCommon = useTranslations('common');
   const icon = useMemo(() => createMarkerIcon(sensor), [sensor]);
@@ -66,10 +67,13 @@ function SensorMarkerInner({ sensor }: SensorMarkerProps) {
   const aqi = sensor.aqi;
   const category = getAqiCategory(aqi);
   const aqiLabel = t(`aqi.${category.key}`);
+  const eventHandlers = useCallback(() => ({
+    click: () => onClick?.(sensor),
+  }), [sensor, onClick]);
 
   if (sensor.isPurchased) {
     return (
-      <Marker position={position} icon={icon}>
+      <Marker position={position} icon={icon} eventHandlers={eventHandlers()}>
         <Popup className="custom-popup" aria-label={`Sensor details: ${sensor.name ?? t('purchased')}`}>
           <div className="p-3 sm:p-4 md:p-5 min-w-[240px] sm:min-w-[320px] text-white bg-gradient-to-br from-cyan-900/90 to-blue-800/90 border-2 border-cyan-400/50 rounded-lg">
             <div className="flex items-center justify-between mb-3">
@@ -170,7 +174,7 @@ function SensorMarkerInner({ sensor }: SensorMarkerProps) {
   const locationText = [sensor.city ?? data?.city ?? '', sensor.country ?? data?.country ?? ''].filter(Boolean).join(', ') || '—';
 
   return (
-    <Marker position={position} icon={icon}>
+    <Marker position={position} icon={icon} eventHandlers={eventHandlers()}>
       <Popup className="custom-popup" maxWidth={360} aria-label={`Sensor details: ${siteName}`}>
         <div
           className={`p-4 min-w-[300px] max-w-[360px] text-white rounded-lg ${

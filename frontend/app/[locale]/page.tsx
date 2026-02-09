@@ -3,8 +3,9 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef } from 'react';
 import { authAPI, airQualityAPI, AirQualityData } from '@/lib/api';
-import { useSensorsOnMap } from '@/hooks/useSensorsOnMap';
+import { useSensorsOnMap, type MapSensor } from '@/hooks/useSensorsOnMap';
 import AirQualityCard from '@/components/AirQualityCard';
+import { SensorDetailPanel } from '@/components/map/SensorDetailPanel';
 import AuthModal from '@/components/AuthModal';
 import Navigation from '@/components/Navigation';
 import Cookies from 'js-cookie';
@@ -21,6 +22,7 @@ export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showAuth, setShowAuth] = useState(false);
+  const [selectedSensor, setSelectedSensor] = useState<MapSensor | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -30,6 +32,18 @@ export default function Home() {
       userId: user?.id ?? null,
       refetchIntervalMs: 5000,
     });
+
+  // Auto-select first sensor or update selected sensor with fresh data
+  useEffect(() => {
+    if (sensors.length > 0) {
+      if (!selectedSensor) {
+        setSelectedSensor(sensors[0]);
+      } else {
+        const updated = sensors.find((s) => s.id === selectedSensor.id);
+        if (updated) setSelectedSensor(updated);
+      }
+    }
+  }, [sensors]);
 
   // Separate fetch for the AirQualityCard sidebar (not rendered on the map)
   const [allAirQuality, setAllAirQuality] = useState<AirQualityData[]>([]);
@@ -197,12 +211,19 @@ export default function Home() {
           <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-16 section-transition">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
               <div className="lg:col-span-2">
-                <MapCard sensors={sensors} loading={mapLoading} error={mapError} onRefetch={refetchMap} />
+                <MapCard sensors={sensors} loading={mapLoading} error={mapError} onRefetch={refetchMap} onSensorClick={setSelectedSensor} />
               </div>
               <div className="space-y-6">
-                {allAirQuality.length > 0 && (
+                {selectedSensor ? (
+                  <SensorDetailPanel sensor={selectedSensor} />
+                ) : allAirQuality.length > 0 ? (
                   <div ref={cardRef} className="scroll-reveal">
                     <AirQualityCard data={allAirQuality[0]} />
+                  </div>
+                ) : (
+                  <div className="glass-strong rounded-3xl border border-green-500/30 p-8 text-center">
+                    <div className="text-4xl mb-3">📍</div>
+                    <p className="text-gray-400 text-sm">Нажмите на датчик на карте для просмотра данных</p>
                   </div>
                 )}
               </div>
