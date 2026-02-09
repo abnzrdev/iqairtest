@@ -17,10 +17,27 @@ function ParamCard({ label, value, unit, accent }: { label: string; value: strin
   );
 }
 
+function getTimeAgo(ts?: string): { text: string; isOnline: boolean } {
+  if (!ts) return { text: 'нет данных', isOnline: false };
+  try {
+    const diff = Date.now() - new Date(ts).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 2) return { text: 'только что', isOnline: true };
+    if (mins < 60) return { text: `${mins} мин назад`, isOnline: mins < 15 };
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return { text: `${hrs} ч назад`, isOnline: false };
+    const days = Math.floor(hrs / 24);
+    return { text: `${days} дн назад`, isOnline: false };
+  } catch {
+    return { text: 'нет данных', isOnline: false };
+  }
+}
+
 export function SensorDetailPanel({ sensor }: SensorDetailPanelProps) {
   const params = sensor.parameters ?? {};
   const aqi = sensor.aqi;
   const category = getAqiCategory(aqi);
+  const { text: timeAgo, isOnline } = getTimeAgo(sensor.timestamp);
 
   const pm1  = params.pm1  ?? 0;
   const pm25 = params.pm25 ?? 0;
@@ -41,14 +58,28 @@ export function SensorDetailPanel({ sensor }: SensorDetailPanelProps) {
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-lg font-black text-white truncate">{sensor.name || 'Sensor'}</h3>
           <div className="flex items-center gap-1.5">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-            </span>
-            <span className="text-green-300 text-[10px] font-bold tracking-wider uppercase">Live</span>
+            {isOnline ? (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                </span>
+                <span className="text-green-300 text-[10px] font-bold tracking-wider uppercase">Online</span>
+              </>
+            ) : (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500" />
+                </span>
+                <span className="text-yellow-400 text-[10px] font-bold tracking-wider uppercase">Offline</span>
+              </>
+            )}
           </div>
         </div>
-        <p className="text-xs text-gray-500">{sensor.city ?? ''}{sensor.country ? `, ${sensor.country}` : ''}</p>
+        <p className="text-xs text-gray-500">
+          {sensor.city ?? ''}{sensor.country ? `, ${sensor.country}` : ''}
+          <span className="ml-2 text-gray-600">· {timeAgo}</span>
+        </p>
       </div>
 
       <div className="p-5 space-y-5">
@@ -122,7 +153,7 @@ export function SensorDetailPanel({ sensor }: SensorDetailPanelProps) {
 
         {/* Footer */}
         <div className="text-center text-[10px] text-gray-600 pt-2 border-t border-white/5">
-          Обновляется каждые 5 секунд
+          {isOnline ? 'Обновляется каждые 5 секунд' : `Последние данные: ${timeAgo}`}
         </div>
       </div>
     </div>

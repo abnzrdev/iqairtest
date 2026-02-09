@@ -22,6 +22,8 @@ export interface MapSensor {
   country?: string;
   description?: string;
   parameters?: Record<string, number>;
+  /** ISO timestamp of last data reading */
+  timestamp?: string;
   /** Raw air quality data if from IQAir API */
   airQualityData?: AirQualityData;
 }
@@ -152,6 +154,7 @@ export function useSensorsOnMap(
                 name: item.site || item.sensorId || 'Sensor',
                 city: 'Almaty',
                 country: 'KZ',
+                timestamp: item.timestamp,
                 parameters: {
                   pm1: params.pm1 ?? 0,
                   pm25: params.pm25 ?? item.value ?? 0,
