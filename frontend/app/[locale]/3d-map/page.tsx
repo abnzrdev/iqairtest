@@ -6,8 +6,20 @@ import Navigation from '@/components/Navigation';
 import Cookies from 'js-cookie';
 import { authAPI } from '@/lib/api';
 
-// Динамический импорт Globe для избежания SSR проблем
-const Globe = dynamic(() => import('react-globe.gl'), { ssr: false });
+// Обёртка Globe с forwardRef для корректной работы через next/dynamic
+const Globe = dynamic(
+  () => import('react-globe.gl').then((mod) => {
+    const GlobeComp = mod.default;
+    // eslint-disable-next-line react/display-name
+    const Wrapper = (props: any) => {
+      const { innerRef, ...rest } = props;
+      return <GlobeComp ref={innerRef} {...rest} />;
+    };
+    Wrapper.displayName = 'GlobeWrapper';
+    return Wrapper;
+  }),
+  { ssr: false }
+);
 
 function getAqiColor(aqi: number) {
   if (aqi <= 50) return '#00e400';
@@ -110,7 +122,7 @@ export default function Map3DPage() {
             <div className="relative flex items-center justify-center" style={{ height: '75vh', minHeight: '500px' }}>
               {typeof window !== 'undefined' && points.length > 0 ? (
                 <Globe
-                  ref={globeRef}
+                  innerRef={globeRef}
                   width={typeof window !== 'undefined' ? Math.min(window.innerWidth - 48, 1200) : 800}
                   height={typeof window !== 'undefined' ? Math.max(window.innerHeight * 0.75, 500) : 600}
                   globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
