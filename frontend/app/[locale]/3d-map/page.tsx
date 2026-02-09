@@ -66,11 +66,16 @@ export default function Map3DPage() {
     return () => clearInterval(interval);
   }, [loadData]);
 
-  // Point camera to Almaty on load
+  // Center globe on Almaty immediately + when data loads
+  useEffect(() => {
+    if (globeRef.current) {
+      globeRef.current.pointOfView({ lat: 43.2220, lng: 76.8512, altitude: 2.0 }, 0);
+    }
+  }, []);
+
   useEffect(() => {
     if (globeRef.current && points.length > 0) {
-      const p = points[0];
-      globeRef.current.pointOfView({ lat: p.lat, lng: p.lng, altitude: 1.5 }, 1500);
+      globeRef.current.pointOfView({ lat: points[0].lat, lng: points[0].lng, altitude: 2.0 }, 1500);
     }
   }, [points.length > 0]);
 
@@ -102,10 +107,12 @@ export default function Map3DPage() {
             </div>
 
             {/* Globe */}
-            <div className="relative" style={{ height: '75vh', minHeight: '500px' }}>
+            <div className="relative flex items-center justify-center" style={{ height: '75vh', minHeight: '500px' }}>
               {typeof window !== 'undefined' && points.length > 0 ? (
                 <Globe
                   ref={globeRef}
+                  width={typeof window !== 'undefined' ? Math.min(window.innerWidth - 48, 1200) : 800}
+                  height={typeof window !== 'undefined' ? Math.max(window.innerHeight * 0.75, 500) : 600}
                   globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
                   backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
                   pointsData={points}
