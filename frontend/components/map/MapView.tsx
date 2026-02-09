@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -40,12 +40,14 @@ const TILE_LAYERS: Record<
 
 function FitToSensors({ sensors }: { sensors: MapSensor[] }) {
   const map = useMap();
+  const hasFitted = useRef(false);
 
+  // Центрируем карту ТОЛЬКО при первой загрузке данных
   useEffect(() => {
-    if (!sensors.length) {
-      map.setView(ALMATY_CENTER, 12);
-      return;
-    }
+    if (hasFitted.current) return;
+    if (!sensors.length) return;
+
+    hasFitted.current = true;
     const points: [number, number][] = sensors.map((s) => [s.lat, s.lng]);
     if (points.length === 1) {
       map.setView(points[0], 13);
