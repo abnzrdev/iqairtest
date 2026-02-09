@@ -142,16 +142,29 @@ export function useSensorsOnMap(
           if (item?.location) {
             const [lat, lng] = item.location.split(',').map((v: string) => parseFloat(v.trim()));
             if (!isNaN(lat) && !isNaN(lng)) {
+              const params = item.parameters || {};
               mapDataSensors.push({
                 id: `map-data-${item.sensorId || i}`,
                 lat,
                 lng,
                 aqi: item.value || 0,
                 isPurchased: false,
-                name: item.sensorId || 'Sensor',
+                name: item.site || item.sensorId || 'Sensor',
                 city: 'Almaty',
                 country: 'KZ',
-                parameters: { pm25: item.value },
+                parameters: {
+                  pm1: params.pm1 ?? 0,
+                  pm25: params.pm25 ?? item.value ?? 0,
+                  pm10: params.pm10 ?? 0,
+                  co2: params.co2 ?? 0,
+                  voc: params.voc ?? 0,
+                  temp: params.temp ?? 0,
+                  hum: params.hum ?? 0,
+                  ch2o: params.ch2o ?? 0,
+                  co: params.co ?? 0,
+                  o3: params.o3 ?? 0,
+                  no2: params.no2 ?? 0,
+                },
               });
             } else {
               console.warn('[SensorsOnMap] Invalid coordinates:', item.location);

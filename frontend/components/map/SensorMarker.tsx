@@ -154,10 +154,13 @@ function SensorMarkerInner({ sensor }: SensorMarkerProps) {
   }
 
   const data = sensor.airQualityData;
-  const pm25 = data?.current?.pollution?.pm25 ?? 0;
-  const pm10 = data?.current?.pollution?.pm10 ?? 0;
-  const co2 = data?.current?.pollution?.co2 ?? 0;
-  const no2 = data?.current?.pollution?.no2 ?? 0;
+  const params = sensor.parameters ?? {};
+  const pm25 = data?.current?.pollution?.pm25 ?? params.pm25 ?? 0;
+  const pm10 = data?.current?.pollution?.pm10 ?? params.pm10 ?? 0;
+  const co2 = data?.current?.pollution?.co2 ?? params.co2 ?? 0;
+  const no2 = data?.current?.pollution?.no2 ?? params.no2 ?? 0;
+  const temp = data?.current?.weather?.tp ?? params.temp ?? null;
+  const hum = data?.current?.weather?.hu ?? params.hum ?? null;
   const ts = data?.current?.pollution?.ts;
   const siteName = data?.sensor_data?.site ?? sensor.name ?? data?.city ?? 'Station';
   const locationText = [data?.state ?? sensor.state ?? '', data?.country ?? sensor.country ?? ''].filter(Boolean).join(', ') || '—';
@@ -208,6 +211,38 @@ function SensorMarkerInner({ sensor }: SensorMarkerProps) {
               <div className="text-xs text-gray-500">ppb</div>
             </div>
           </div>
+          {/* Extra gas parameters when available */}
+          {(params.co || params.voc || params.ch2o || params.o3) ? (
+            <div className="border-t border-white/10 pt-3 mb-3">
+              <div className="text-xs font-bold text-green-300 mb-2 uppercase tracking-wide">{tCommon('additionalParams')}</div>
+              <div className="grid grid-cols-2 gap-2">
+                {params.co != null && params.co > 0 && (
+                  <div className="bg-white/5 rounded p-2">
+                    <div className="text-xs text-gray-400">CO</div>
+                    <div className="text-sm font-bold text-white">{params.co.toFixed(2)} ppm</div>
+                  </div>
+                )}
+                {params.voc != null && params.voc > 0 && (
+                  <div className="bg-white/5 rounded p-2">
+                    <div className="text-xs text-gray-400">VOC</div>
+                    <div className="text-sm font-bold text-white">{params.voc.toFixed(2)} ppm</div>
+                  </div>
+                )}
+                {params.o3 != null && params.o3 > 0 && (
+                  <div className="bg-white/5 rounded p-2">
+                    <div className="text-xs text-gray-400">O₃</div>
+                    <div className="text-sm font-bold text-white">{params.o3.toFixed(1)} ppb</div>
+                  </div>
+                )}
+                {params.ch2o != null && params.ch2o > 0 && (
+                  <div className="bg-white/5 rounded p-2">
+                    <div className="text-xs text-gray-400">CH₂O</div>
+                    <div className="text-sm font-bold text-white">{params.ch2o.toFixed(3)} ppm</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : null}
           {data?.sensor_data && (
             <div className="mb-2 sm:mb-3 text-xs border-t border-white/10 pt-2 sm:pt-3">
               <p className="text-gray-300 mb-1">
@@ -218,16 +253,20 @@ function SensorMarkerInner({ sensor }: SensorMarkerProps) {
               </p>
             </div>
           )}
-          {data?.current?.weather && (
+          {(temp != null || hum != null) && (
             <div className="text-xs sm:text-sm border-t border-white/10 pt-2 sm:pt-3 flex flex-col sm:flex-row justify-between gap-2 sm:gap-0">
-              <div>
-                <span className="text-gray-400">{tCommon('temperature')}:</span>
-                <span className="text-white font-semibold ml-2">{data.current.weather.tp}°C</span>
-              </div>
-              <div>
-                <span className="text-gray-400">{tCommon('humidity')}:</span>
-                <span className="text-white font-semibold ml-2">{data.current.weather.hu}%</span>
-              </div>
+              {temp != null && (
+                <div>
+                  <span className="text-gray-400">{tCommon('temperature')}:</span>
+                  <span className="text-white font-semibold ml-2">{temp}°C</span>
+                </div>
+              )}
+              {hum != null && (
+                <div>
+                  <span className="text-gray-400">{tCommon('humidity')}:</span>
+                  <span className="text-white font-semibold ml-2">{hum}%</span>
+                </div>
+              )}
             </div>
           )}
           <p className="text-xs text-gray-500 border-t border-white/10 pt-2 mt-2">

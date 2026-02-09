@@ -61,16 +61,29 @@ export async function GET() {
       // Определяем координаты по сайту или используем дефолтные
       const location = siteCoordinates[site] || '43.2220,76.8512';
       
-      // Вычисляем AQI значение из PM2.5
-      const pm25 = (typeof data.pm25 === 'number' ? data.pm25 : 
-                    typeof data.pm2_5 === 'number' ? data.pm2_5 : 0);
-      const value = pm25;
+      // Извлекаем все параметры сенсора
+      const num = (v: unknown) => (typeof v === 'number' ? v : 0);
+      const pm25 = num(data.pm25) || num(data.pm2_5);
       
       return {
         location,
-        value: Number(value) || 0,
+        value: pm25,
         timestamp: reading.ts.toISOString(),
         sensorId: reading.device_id || 'unknown',
+        site: site || undefined,
+        parameters: {
+          pm1: num(data.pm1),
+          pm25,
+          pm10: num(data.pm10),
+          co2: num(data.co2),
+          voc: num(data.voc),
+          temp: num(data.temp),
+          hum: num(data.hum),
+          ch2o: num(data.ch2o),
+          co: num(data.co),
+          o3: num(data.o3),
+          no2: num(data.no2),
+        },
       };
     });
 
