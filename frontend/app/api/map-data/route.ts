@@ -20,9 +20,9 @@ export async function GET() {
   try {
     const sql = getDbConnection();
     
-    // Получаем только последнюю запись от активного устройства (lab01)
-    // Только данные, которые поступают сейчас
-    const readings = await sql`
+    // Получаем последнюю запись от каждого устройства
+    // Сначала пробуем свежие данные (за последний час), если нет — берём последнюю запись вообще
+    let readings = await sql`
       SELECT 
         r.id,
         r.device_id,
@@ -31,11 +31,36 @@ export async function GET() {
         d.id as device_id_full
       FROM readings r
       LEFT JOIN devices d ON r.device_id = d.id
-      WHERE r.device_id = 'lab01'
-        AND r.ts > NOW() - INTERVAL '10 minutes'
+      WHERE r.ts > NOW() - INTERVAL '1 hour'
       ORDER BY r.ts DESC
-      LIMIT 1
+      LIMIT 10
     `;
+
+    // Если нет свежих данных — берём последнюю запись от каждого устройства
+    if (readings.length === 0) {
+      readings = await sql`
+        SELECT DISTINCT ON (r.device_id)
+          r.id,
+          r.device_id,
+          r.ts,
+          r.data,
+          d.id as device_id_full
+        FROM readings r
+        LEFT JOIN devices d ON r.device_id = d.id
+        ORDER BY r.device_id, r.ts DESC
+        LIMIT 10
+      `;
+    }
+
+    // Дедупликация — оставляем только последнюю запись от каждого устройства
+    const latestByDevice = new Map<string, typeof readings[0]>();
+    for (const r of readings) {
+      const did = (r as any).device_id;
+      if (!latestByDevice.has(did)) {
+        latestByDevice.set(did, r);
+      }
+    }
+    readings = Array.from(latestByDevice.values());
 
     // Маппинг сайтов на координаты
     const siteCoordinates: Record<string, string> = {
