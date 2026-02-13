@@ -19,10 +19,18 @@ const getDbConnection = () => {
 export async function GET() {
   try {
     const sql = getDbConnection();
+
+    type ReadingRow = {
+      id: number;
+      device_id: string;
+      ts: Date;
+      data: Record<string, unknown>;
+      device_id_full?: string | null;
+    };
     
     // Получаем последнюю запись от каждого устройства
     // Сначала пробуем свежие данные (за последний час), если нет — берём последнюю запись вообще
-    let readings = await sql`
+    const freshReadings = await sql<ReadingRow[]>`
       SELECT 
         r.id,
         r.device_id,
@@ -35,10 +43,11 @@ export async function GET() {
       ORDER BY r.ts DESC
       LIMIT 10
     `;
+    let readings: ReadingRow[] = Array.from(freshReadings as unknown as ReadingRow[]);
 
     // Если нет свежих данных — берём последнюю запись от каждого устройства
     if (readings.length === 0) {
-      readings = await sql`
+      const fallbackReadings = await sql<ReadingRow[]>`
         SELECT DISTINCT ON (r.device_id)
           r.id,
           r.device_id,
@@ -50,12 +59,13 @@ export async function GET() {
         ORDER BY r.device_id, r.ts DESC
         LIMIT 10
       `;
+      readings = Array.from(fallbackReadings as unknown as ReadingRow[]);
     }
 
     // Дедупликация — оставляем только последнюю запись от каждого устройства
-    const latestByDevice = new Map<string, typeof readings[0]>();
+    const latestByDevice = new Map<string, ReadingRow>();
     for (const r of readings) {
-      const did = (r as any).device_id;
+      const did = r.device_id;
       if (!latestByDevice.has(did)) {
         latestByDevice.set(did, r);
       }
@@ -69,17 +79,8 @@ export async function GET() {
       'Алматы': '43.2220,76.8512',
     };
 
-    // Тип для результата SQL запроса
-    type ReadingRow = {
-      id: number;
-      device_id: string;
-      ts: Date;
-      data: Record<string, unknown>;
-      device_id_full?: string | null;
-    };
-
     // Преобразуем данные в формат MapReading
-    const mapReadings = (readings as unknown as ReadingRow[]).map((reading) => {
+    const mapReadings = readings.map((reading) => {
       const data = reading.data || {};
       const site = typeof data.site === 'string' ? data.site : '';
       

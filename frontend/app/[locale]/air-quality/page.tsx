@@ -1,8 +1,12 @@
 'use client';
 
 import Navigation from '@/components/Navigation';
-import AlmatyMap from '@/components/map/AlmatyMap';
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
+
+const AlmatyMap = dynamic(() => import('@/components/map/AlmatyMap'), {
+  ssr: false,
+});
 
 export default function AirQualityPage() {
   const [selectedTab, setSelectedTab] = useState('map');
