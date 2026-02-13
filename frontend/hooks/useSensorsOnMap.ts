@@ -114,27 +114,33 @@ export function useSensorsOnMap(
     }
     setError(null);
     try {
-      // Загружаем только данные из /api/map-data (реалтайм данные от активного устройства)
-      const mapDataResponse = await fetch('/api/map-data')
-        .then(res => {
-          if (!res.ok) {
-            console.warn('[SensorsOnMap] API response not OK:', res.status, res.statusText);
-            return null;
-          }
-          return res.json();
-        })
-        .then(data => {
-          if (data?.success && Array.isArray(data.data)) {
-            console.log('[SensorsOnMap] Received data:', data.data.length, 'items');
-            return data.data;
-          }
-          console.warn('[SensorsOnMap] Invalid data format:', data);
+      // Загружаем данные из /api/map-data (реалтайм) и купленные/выданные датчики пользователя
+      const [mapDataResponse, purchasedRawSensors] = await Promise.all([
+        fetch('/api/map-data')
+          .then(res => {
+            if (!res.ok) {
+              console.warn('[SensorsOnMap] API response not OK:', res.status, res.statusText);
+              return null;
+            }
+            return res.json();
+          })
+          .then(data => {
+            if (data?.success && Array.isArray(data.data)) {
+              console.log('[SensorsOnMap] Received map-data:', data.data.length, 'items');
+              return data.data;
+            }
+            console.warn('[SensorsOnMap] Invalid map-data format:', data);
+            return [];
+          })
+          .catch((err) => {
+            console.error('[SensorsOnMap] map-data fetch error:', err);
+            return [];
+          }),
+        sensorAPI.mapSensors().catch((err) => {
+          console.warn('[SensorsOnMap] mapSensors fetch error:', err?.message || err);
           return [];
-        })
-        .catch((err) => {
-          console.error('[SensorsOnMap] Fetch error:', err);
-          return [];
-        });
+        }),
+      ]);
 
       // Преобразуем данные из /api/map-data в MapSensor
       // Показываем только данные от активного устройства
@@ -178,13 +184,18 @@ export function useSensorsOnMap(
         });
       }
 
-      console.log('[SensorsOnMap] Processed sensors:', mapDataSensors.length, mapDataSensors);
-      
-      // Показываем только данные от активного устройства
+      const purchasedSensors = (Array.isArray(purchasedRawSensors) ? purchasedRawSensors : [])
+        .map((sensor, i) => purchasedSensorToMapSensor(sensor, i))
+        .filter((sensor): sensor is MapSensor => sensor !== null);
+
+      const mergedSensors = [...purchasedSensors, ...mapDataSensors];
+
+      console.log('[SensorsOnMap] Processed sensors:', mergedSensors.length, mergedSensors);
+
       setAllAirQuality([]);
-      setSensors(mapDataSensors);
+      setSensors(mergedSensors);
       
-      if (mapDataSensors.length === 0 && mapDataResponse.length > 0) {
+      if (mergedSensors.length === 0 && (mapDataResponse.length > 0 || purchasedSensors.length > 0)) {
         console.error('[SensorsOnMap] Failed to process sensors from response:', mapDataResponse);
       }
       lastErrorRef.current = null;
