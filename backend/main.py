@@ -286,8 +286,236 @@ def sensor_to_response(sensor: dict) -> dict:
     }
 
 
+DEMO_SENSORS = [
+    {
+        "name": "Downtown Center",
+        "description": "Sensor in downtown business district",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.9385, 43.2380]},
+        "parameters": {"pm25": 45.5, "pm10": 65.2, "co2": 420, "co": 0.8, "o3": 35, "no2": 42, "voc": 0.5, "ch2o": 0.02, "temp": 22, "hum": 45},
+    },
+    {
+        "name": "Gorky Park",
+        "description": "Sensor near Gorky Park",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.9420, 43.2180]},
+        "parameters": {"pm25": 28.3, "pm10": 35.5, "co2": 410, "co": 0.3, "o3": 28, "no2": 25, "voc": 0.2, "ch2o": 0.01, "temp": 20, "hum": 55},
+    },
+    {
+        "name": "Industrial Zone East",
+        "description": "Sensor in eastern industrial area",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [77.0500, 43.1800]},
+        "parameters": {"pm25": 95.7, "pm10": 145.2, "co2": 480, "co": 2.5, "o3": 55, "no2": 78, "voc": 1.2, "ch2o": 0.08, "temp": 24, "hum": 35},
+    },
+    {
+        "name": "Al-Farabi Avenue",
+        "description": "Sensor on Al-Farabi Avenue highway",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.8930, 43.2110]},
+        "parameters": {"pm25": 65.4, "pm10": 95.8, "co2": 450, "co": 1.5, "o3": 45, "no2": 58, "voc": 0.8, "ch2o": 0.04, "temp": 21, "hum": 50},
+    },
+    {
+        "name": "Samal District",
+        "description": "Sensor in Samal residential district",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.9570, 43.2320]},
+        "parameters": {"pm25": 38.2, "pm10": 52.1, "co2": 415, "co": 0.5, "o3": 32, "no2": 35, "voc": 0.3, "ch2o": 0.015, "temp": 19, "hum": 60},
+    },
+    {
+        "name": "Medeu",
+        "description": "Sensor near Medeu skating rink in the mountains",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [77.0580, 43.1570]},
+        "parameters": {"pm25": 12.1, "pm10": 18.4, "co2": 395, "co": 0.1, "o3": 42, "no2": 10, "voc": 0.1, "ch2o": 0.005, "temp": 14, "hum": 65},
+    },
+    {
+        "name": "Shymbulak",
+        "description": "Sensor near Shymbulak ski resort",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [77.0810, 43.1320]},
+        "parameters": {"pm25": 8.5, "pm10": 12.0, "co2": 385, "co": 0.05, "o3": 48, "no2": 5, "voc": 0.05, "ch2o": 0.003, "temp": 8, "hum": 70},
+    },
+    {
+        "name": "Mega Center Alma-Ata",
+        "description": "Sensor near Mega Center shopping mall",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.8520, 43.2070]},
+        "parameters": {"pm25": 52.3, "pm10": 74.6, "co2": 440, "co": 1.1, "o3": 38, "no2": 48, "voc": 0.6, "ch2o": 0.03, "temp": 23, "hum": 42},
+    },
+    {
+        "name": "Green Bazaar",
+        "description": "Sensor near Zelyony Bazaar market",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.9450, 43.2560]},
+        "parameters": {"pm25": 58.9, "pm10": 82.3, "co2": 445, "co": 1.3, "o3": 30, "no2": 52, "voc": 0.7, "ch2o": 0.035, "temp": 22, "hum": 48},
+    },
+    {
+        "name": "Almaty-1 Station",
+        "description": "Sensor near Almaty-1 railway station",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.9120, 43.2880]},
+        "parameters": {"pm25": 72.1, "pm10": 108.5, "co2": 460, "co": 1.8, "o3": 40, "no2": 65, "voc": 0.9, "ch2o": 0.05, "temp": 23, "hum": 40},
+    },
+    {
+        "name": "Almaty-2 Station",
+        "description": "Sensor near Almaty-2 railway station",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.9460, 43.2400]},
+        "parameters": {"pm25": 68.4, "pm10": 99.2, "co2": 455, "co": 1.6, "o3": 36, "no2": 60, "voc": 0.85, "ch2o": 0.045, "temp": 22, "hum": 43},
+    },
+    {
+        "name": "Kok-Tobe",
+        "description": "Sensor on Kok-Tobe hill viewpoint",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.9840, 43.2270]},
+        "parameters": {"pm25": 18.7, "pm10": 25.3, "co2": 400, "co": 0.2, "o3": 45, "no2": 15, "voc": 0.15, "ch2o": 0.008, "temp": 16, "hum": 58},
+    },
+    {
+        "name": "Abay Avenue",
+        "description": "Sensor on Abay Avenue major road",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.9100, 43.2400]},
+        "parameters": {"pm25": 62.0, "pm10": 88.5, "co2": 448, "co": 1.4, "o3": 33, "no2": 55, "voc": 0.75, "ch2o": 0.038, "temp": 22, "hum": 44},
+    },
+    {
+        "name": "Raimbek Avenue",
+        "description": "Sensor on Raimbek Avenue near bazaar",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.9250, 43.2600]},
+        "parameters": {"pm25": 70.5, "pm10": 102.0, "co2": 458, "co": 1.7, "o3": 35, "no2": 62, "voc": 0.88, "ch2o": 0.048, "temp": 23, "hum": 41},
+    },
+    {
+        "name": "Botanical Garden",
+        "description": "Sensor near the Main Botanical Garden",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.9380, 43.2220]},
+        "parameters": {"pm25": 22.5, "pm10": 30.0, "co2": 405, "co": 0.25, "o3": 38, "no2": 18, "voc": 0.18, "ch2o": 0.009, "temp": 19, "hum": 58},
+    },
+    {
+        "name": "KBTU University",
+        "description": "Sensor near Kazakh-British Technical University",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.9460, 43.2370]},
+        "parameters": {"pm25": 40.0, "pm10": 56.0, "co2": 425, "co": 0.7, "o3": 30, "no2": 38, "voc": 0.4, "ch2o": 0.02, "temp": 21, "hum": 50},
+    },
+    {
+        "name": "Airport",
+        "description": "Sensor near Almaty International Airport",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [77.0400, 43.3530]},
+        "parameters": {"pm25": 55.8, "pm10": 78.4, "co2": 442, "co": 1.2, "o3": 32, "no2": 50, "voc": 0.65, "ch2o": 0.032, "temp": 22, "hum": 46},
+    },
+    {
+        "name": "Tastak District",
+        "description": "Sensor in Tastak residential area",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.8770, 43.2560]},
+        "parameters": {"pm25": 42.0, "pm10": 60.0, "co2": 422, "co": 0.6, "o3": 34, "no2": 40, "voc": 0.45, "ch2o": 0.022, "temp": 20, "hum": 52},
+    },
+    {
+        "name": "Orbita District",
+        "description": "Sensor in Orbita microdistrict",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.8650, 43.2150]},
+        "parameters": {"pm25": 35.0, "pm10": 48.5, "co2": 412, "co": 0.45, "o3": 36, "no2": 30, "voc": 0.28, "ch2o": 0.014, "temp": 19, "hum": 56},
+    },
+    {
+        "name": "Aksay District",
+        "description": "Sensor in Aksay residential area",
+        "city": "Almaty",
+        "country": "Kazakhstan",
+        "location": {"type": "Point", "coordinates": [76.8400, 43.2370]},
+        "parameters": {"pm25": 48.0, "pm10": 68.0, "co2": 430, "co": 0.9, "o3": 31, "no2": 44, "voc": 0.55, "ch2o": 0.028, "temp": 21, "hum": 47},
+    },
+]
+
+
+async def get_seeded_sensor_ids():
+    """Get IDs of all seeded demo sensors by their names."""
+    sensor_ids = []
+    for sensor_def in DEMO_SENSORS:
+        sensor = await db.sensors.find_one({"name": sensor_def["name"]})
+        if sensor:
+            sensor_ids.append(str(sensor["_id"]))
+    return sensor_ids
+
+
+async def ensure_demo_sensors_exist():
+    """Ensure all demo sensors exist and return their IDs."""
+    for sensor_doc in DEMO_SENSORS:
+        existing = await db.sensors.find_one({"name": sensor_doc["name"]})
+        if existing:
+            print(f"  ⊝ Sensor exists: {sensor_doc['name']}")
+        else:
+            doc = {**sensor_doc, "created_at": datetime.utcnow()}
+            await db.sensors.insert_one(doc)
+            print(f"  ✓ Added sensor {sensor_doc['name']}")
+
+    return await get_seeded_sensor_ids()
+
+
+async def ensure_user_has_seeded_sensors(user: dict):
+    """Ensure a specific user has access to all seeded sensors."""
+    sensor_ids = await get_seeded_sensor_ids()
+    if not sensor_ids:
+        return []
+
+    current_permissions = set(user.get("sensor_permissions", []) or [])
+    missing_ids = [sid for sid in sensor_ids if sid not in current_permissions]
+
+    if missing_ids:
+        await db.users.update_one(
+            {"_id": user["_id"]},
+            {"$addToSet": {"sensor_permissions": {"$each": missing_ids}}}
+        )
+        print(f"✓ Backfilled {len(missing_ids)} sensors for user {user.get('email')}")
+
+    return sensor_ids
+
+
+async def grant_sensors_to_all_users(sensor_ids):
+    """Grant the given sensor IDs to every user in the database."""
+    if not sensor_ids:
+        return
+
+    users = await db.users.find({}).to_list(5000)
+    updated_users = 0
+    for user in users:
+        current_permissions = set(user.get("sensor_permissions", []) or [])
+        missing_ids = [sid for sid in sensor_ids if sid not in current_permissions]
+        if not missing_ids:
+            continue
+        await db.users.update_one(
+            {"_id": user["_id"]},
+            {"$addToSet": {"sensor_permissions": {"$each": missing_ids}}}
+        )
+        updated_users += 1
+
+    print(f"✓ Granted {len(sensor_ids)} sensors to {updated_users} existing users")
+
+
 async def seed_test_user_and_sensors():
-    """Ensure demo user and sensors exist in Mongo so the map has data."""
+    """Ensure demo user and 20 sensors exist in Mongo, granted to ALL users."""
     try:
         user = await db.users.find_one({"email": TEST_USER_EMAIL})
         if not user:
@@ -299,74 +527,14 @@ async def seed_test_user_and_sensors():
                 "role": "user",
                 "sensor_permissions": [],
             }
-            result = await db.users.insert_one(user_doc)
-            user_id = result.inserted_id
+            await db.users.insert_one(user_doc)
             print(f"✓ Created demo user {TEST_USER_EMAIL}")
         else:
-            user_id = user.get("_id")
             print(f"✓ Demo user exists: {TEST_USER_EMAIL}")
 
-        demo_sensors = [
-            {
-                "name": "Downtown Center",
-                "description": "Sensor in downtown business district",
-                "city": "Almaty",
-                "country": "Kazakhstan",
-                "location": {"type": "Point", "coordinates": [76.9385, 43.2380]},
-                "parameters": {"pm25": 45.5, "pm10": 65.2, "co2": 420, "co": 0.8, "o3": 35, "no2": 42, "voc": 0.5, "ch2o": 0.02, "temp": 22, "hum": 45},
-            },
-            {
-                "name": "Park Monitor",
-                "description": "Sensor near Gorky Park",
-                "city": "Almaty",
-                "country": "Kazakhstan",
-                "location": {"type": "Point", "coordinates": [76.8800, 43.2150]},
-                "parameters": {"pm25": 28.3, "pm10": 35.5, "co2": 410, "co": 0.3, "o3": 28, "no2": 25, "voc": 0.2, "ch2o": 0.01, "temp": 20, "hum": 55},
-            },
-            {
-                "name": "Industrial Zone",
-                "description": "Sensor in industrial area",
-                "city": "Almaty",
-                "country": "Kazakhstan",
-                "location": {"type": "Point", "coordinates": [77.0500, 43.1800]},
-                "parameters": {"pm25": 95.7, "pm10": 145.2, "co2": 480, "co": 2.5, "o3": 55, "no2": 78, "voc": 1.2, "ch2o": 0.08, "temp": 24, "hum": 35},
-            },
-            {
-                "name": "Highway Monitor",
-                "description": "Sensor near main highway",
-                "city": "Almaty",
-                "country": "Kazakhstan",
-                "location": {"type": "Point", "coordinates": [77.1200, 43.2500]},
-                "parameters": {"pm25": 65.4, "pm10": 95.8, "co2": 450, "co": 1.5, "o3": 45, "no2": 58, "voc": 0.8, "ch2o": 0.04, "temp": 21, "hum": 50},
-            },
-            {
-                "name": "Residential Area",
-                "description": "Sensor in residential neighborhood",
-                "city": "Almaty",
-                "country": "Kazakhstan",
-                "location": {"type": "Point", "coordinates": [76.7800, 43.2800]},
-                "parameters": {"pm25": 38.2, "pm10": 52.1, "co2": 415, "co": 0.5, "o3": 32, "no2": 35, "voc": 0.3, "ch2o": 0.015, "temp": 19, "hum": 60},
-            },
-        ]
-
-        sensor_ids = []
-        for sensor_doc in demo_sensors:
-            existing = await db.sensors.find_one({"name": sensor_doc["name"]})
-            if existing:
-                sensor_id = existing.get("_id")
-                print(f"  ⊝ Sensor exists: {sensor_doc['name']}")
-            else:
-                sensor_doc["created_at"] = datetime.utcnow()
-                result = await db.sensors.insert_one(sensor_doc)
-                sensor_id = result.inserted_id
-                print(f"  ✓ Added sensor {sensor_doc['name']}")
-            sensor_ids.append(str(sensor_id))
-
-        await db.users.update_one(
-            {"_id": user_id},
-            {"$addToSet": {"sensor_permissions": {"$each": sensor_ids}}}
-        )
-        print(f"✓ Granted access to {len(sensor_ids)} sensors for {TEST_USER_EMAIL}")
+        sensor_ids = await ensure_demo_sensors_exist()
+        print(f"✓ Total seeded sensors: {len(sensor_ids)}")
+        await grant_sensors_to_all_users(sensor_ids)
     except Exception as e:
         print(f"Demo seed failed: {e}")
 
@@ -465,17 +633,22 @@ async def register(user: UserCreate):
         print(f"🔐 Hashing password for user: {user.email}")
         hashed_password = get_password_hash(user.password)
         print(f"✓ Password hashed successfully")
+
+        # Ensure seeded demo sensors exist, then auto-grant to the new user
+        await ensure_demo_sensors_exist()
+        sensor_ids = await get_seeded_sensor_ids()
+
         user_dict = {
             "email": user.email,
             "name": user.name,
             "hashed_password": hashed_password,
             "created_at": datetime.utcnow(),
             "role": "user",
-            "sensor_permissions": []
+            "sensor_permissions": sensor_ids,
         }
         print(f"💾 Inserting user into database...")
         result = await db.users.insert_one(user_dict)
-        print(f"✓ User created with ID: {result.inserted_id}")
+        print(f"✓ User created with ID: {result.inserted_id} with {len(sensor_ids)} sensors")
         user_dict["id"] = str(result.inserted_id)
         return UserResponse(
             id=user_dict["id"],
@@ -504,6 +677,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    # Backfill seeded sensors for older users who registered before seeding logic
+    await ensure_user_has_seeded_sensors(user)
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     user_role = user.get("role", "user")
