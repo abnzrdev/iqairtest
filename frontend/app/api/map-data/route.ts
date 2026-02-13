@@ -17,8 +17,9 @@ const getDbConnection = () => {
 };
 
 export async function GET() {
+  let sql: ReturnType<typeof getDbConnection> | null = null;
   try {
-    const sql = getDbConnection();
+    sql = getDbConnection();
 
     type ReadingRow = {
       id: number;
@@ -121,14 +122,15 @@ export async function GET() {
       count: mapReadings.length,
     });
   } catch (error) {
-    console.error('Error fetching map data:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to fetch map data',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    // If the Postgres DB is unreachable, return empty data instead of 500
+    // so the frontend can still show sensors from the backend API
+    console.warn('map-data: Postgres unavailable, returning empty data.', 
+      error instanceof Error ? error.message : error);
+    try { if (sql) await sql.end(); } catch { /* ignore cleanup error */ }
+    return NextResponse.json({
+      success: true,
+      data: [],
+      count: 0,
+    });
   }
 }
